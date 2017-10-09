@@ -8,6 +8,11 @@ function create() {
 }
 
 function getSpecificDS() {
+  $.getJSON("./json/classes.json", function(json){
+        memoryInput["classes"] = json;
+        console.log(json);
+      });
+
     getAllDS(function (data) {
         allDs = data;
         var index = 0;
@@ -480,13 +485,13 @@ function ci_helper_containsRestrictedClassInExpectedTypeArray(restrictedProperty
 function ci_helper_createHTMLCodeForPropertyName(className,propertyName,rootElementName,isOptional,multipleValuesAllowed,level){
     var htmlCode = '';
     //information button
-    htmlCode = htmlCode.concat('<span class="double-margin"><a href="javascript:subProcess_openModalPropertyInfo(\''+className+'\', \''+propertyName+'\')" class="btn btn-info btn-fab btn-fab-mini my-fab-info" data-toggle="tooltip" data-placement="top" title="Show description"  tabindex="-1" ><i class="material-icons my-fab-icon">info_outline</i></a></span>');
+      //htmlCode = htmlCode.concat('<span class="double-margin"><a href="javascript:subProcess_openModalPropertyInfo(\''+className+'\', \''+propertyName+'\')" class="btn btn-info btn-fab btn-fab-mini my-fab-info" data-toggle="tooltip" data-placement="top" title="Show description"  tabindex="-1" ><i class="material-icons my-fab-icon">info_outline</i></a></span>');
     //isOptional -> add button to show/hide value input section
     if(isOptional){
         htmlCode = htmlCode.concat('<span class="double-margin"><a id="'+rootElementName+'_'+propertyName+'_link" href="javascript:ci_propertyUsageSwitch(\''+propertyName+'\', \''+rootElementName+'\')" class="btn btn-warning btn-fab btn-fab-mini my-fab-info" data-toggle="tooltip" data-placement="top" title="hide/use this property for the annotation"  tabindex="-1" ><i class="material-icons my-fab-icon iconSmall">visibility_off</i></a></span>');
     }
     //property name
-    htmlCode = htmlCode.concat('<span class="double-margin propertyName">'+propertyName+'</span>');
+    htmlCode = htmlCode.concat('<span title="'+ cleanHtmlTags(subProcess_openModalPropertyInfo(className,propertyName)) +'" class="double-margin propertyName">'+propertyName+'</span>');
     //multipleValuesAllowed -> multiple values button to add new input field
     if(multipleValuesAllowed){
         htmlCode = htmlCode.concat('<span class="double-margin"><a href="javascript:ci_userButton_addValueContainerToPropertyBody(\''+propertyName+'\',\''+rootElementName+'\',\''+level+'\')" class="btn btn-success btn-fab btn-fab-mini my-fab-info" data-toggle="tooltip" data-placement="top" title="add another input field/element"  tabindex="-1" ><i class="material-icons my-fab-icon iconSmall">add</i></a></span>');
@@ -530,7 +535,16 @@ function subProcess_openModalPropertyInfo(className, propertyName) {
             break;
         }
     }
-    $('#property-info-modal-content').html(repairLinksInHTMLCode(description));
-    $('#property-info-modal-title').text(propertyName);
-    $('#property-info-modal').modal("show");
+    console.log(description);
+    return description;
+}
+
+function repairLinksInHTMLCode(htmlCode) {
+    htmlCode = htmlCode.replace(/ href=\"\//g, ' href=\"https://schema.org/');
+    htmlCode = htmlCode.replace(/<a /g, '<a target="_blank" ');
+    return htmlCode;
+}
+
+function cleanHtmlTags(str) {
+    return str.replace(/<(?:.|\n)*?>/gm, '');
 }
