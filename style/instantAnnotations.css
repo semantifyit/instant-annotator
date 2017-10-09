@@ -1,8 +1,25 @@
 .propertyName {
     font-weight: bold;
-    font-size: meduim;
+    font-size: medium;
+}
+
+.lowLevel {
+    font-weight: normal;
+    font-size: medium;
+}
+
+.fontBold {
+    font-weight: bold;
+}
+
+.fontNormal {
+    font-weight: normal;
 }
 
 .input-myBackground {
     padding: 7px !important;
+}
+
+.propertyContainer {
+    margin-bottom: 5px;
 }

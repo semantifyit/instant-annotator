@@ -2,6 +2,10 @@
 var allDs;
 var memoryProcess={};
 var memoryInput={};
+var curDs;
+
+var inputElements = [];
+var outputJsonLd = {};
 
 function create() {
     getSpecificDS();
@@ -10,7 +14,7 @@ function create() {
 function getSpecificDS() {
   $.getJSON("./json/classes.json", function(json){
         memoryInput["classes"] = json;
-        console.log(json);
+        //console.log(json);
       });
 
     getAllDS(function (data) {
@@ -41,14 +45,20 @@ function getSpecificDS() {
 
 
 function changeSelectedDomainSpecification() {
+    inputElements = [];
     var selectedIndex = $('#dsList').prop('selectedIndex');
-    var curDs = allDs[selectedIndex];
+    curDs = allDs[selectedIndex];
     var ds = curDs['content'];
-    var dsName = ds['schema:name'].replace('Simple', '');
     memoryInput.domainSpecification=ds;
     ci_createAnnotationInputForm();
 
-    $('#textArea').html(syntaxHighlight(JSON.stringify(ds, null, 2)));
+    //var dsName = ds['schema:name'].replace('Simple', '');
+
+    outputJsonLd = {
+        "@context": "http://schema.org",
+        "@type" : memoryInput.domainSpecification["dsv:class"][0]["schema:name"]
+    };
+    $('#textArea').html(syntaxHighlight(JSON.stringify(outputJsonLd, null, 2)));
 }
 
 function getAllDS(callback) { //return data
@@ -351,22 +361,22 @@ function ci_setPropertyInputToContainer(inputContainerElement, fromSelect) {
             containerElement.append('<div class="checkbox form-group"><label><input type="checkbox" class="" id="'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID+'"></label></div>');
             break;
         case "Date":
-            containerElement.append('<input type="date" class="form-control input-myBackground" id="'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID+'" >');
+            containerElement.append('<input type="date" class="form-control input-myBackground" id="'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID+'">');
             break;
         case "DateTime":
-            containerElement.append('<input type="datetime-local" class="form-control input-myBackground" id="'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID+'" >');
+            containerElement.append('<input type="datetime-local" class="form-control input-myBackground" id="'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID+'">');
             break;
         case "Time":
-            containerElement.append('<input type="time" class="form-control input-myBackground" id="'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID+'" >');
+            containerElement.append('<input type="time" class="form-control input-myBackground" id="'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID+'">');
             break;
         case "Number":
-            containerElement.append('<input type="number" step="any" class="form-control input-myBackground" id="'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID+'" >');
+            containerElement.append('<input type="number" step="any" class="form-control input-myBackground" id="'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID+'">');
             break;
         case "Float":
-            containerElement.append('<input type="number" step="any" class="form-control input-myBackground" id="'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID+'" >');
+            containerElement.append('<input type="number" step="any" class="form-control input-myBackground" id="'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID+'">');
             break;
         case "Integer":
-            containerElement.append('<input type="number" class="form-control input-myBackground" id="'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID+'" >');
+            containerElement.append('<input type="number" class="form-control input-myBackground" id="'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID+'">');
             break;
         case "Text":
             containerElement.append('<input type="text" class="form-control input-myBackground" id="'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID+'" placeholder="'+propertyName+'">');
@@ -395,8 +405,32 @@ function ci_setPropertyInputToContainer(inputContainerElement, fromSelect) {
         break;
     default:
         break;
-
     }
+
+    $('#'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID).on('input', function() {
+        change();
+    });
+
+    inputElements.push(rootElementName+'_'+propertyName+'_inputField_'+valueTypeID);
+}
+
+function change(){
+    //console.log("change");
+    //console.log(inputElements);
+
+    for(var i in inputElements){
+        var value = $('#'+inputElements[i]).val();
+        var propName = inputElements[i].replace("ST2Content_", "").split('_')[0];
+        if(value !== undefined && value !== ""){
+            //console.log(propName);
+            outputJsonLd[propName] = value;
+        }
+        else if(outputJsonLd.hasOwnProperty(propName)){
+            delete outputJsonLd[propName];
+        }
+    }
+
+    $('#textArea').html(syntaxHighlight(JSON.stringify(outputJsonLd, null, 2)));
 }
 
 
@@ -491,7 +525,7 @@ function ci_helper_createHTMLCodeForPropertyName(className,propertyName,rootElem
         htmlCode = htmlCode.concat('<span class="double-margin"><a id="'+rootElementName+'_'+propertyName+'_link" href="javascript:ci_propertyUsageSwitch(\''+propertyName+'\', \''+rootElementName+'\')" class="btn btn-warning btn-fab btn-fab-mini my-fab-info" data-toggle="tooltip" data-placement="top" title="hide/use this property for the annotation"  tabindex="-1" ><i class="material-icons my-fab-icon iconSmall">visibility_off</i></a></span>');
     }
     //property name
-    htmlCode = htmlCode.concat('<span title="'+ cleanHtmlTags(subProcess_openModalPropertyInfo(className,propertyName)) +'" class="double-margin propertyName">'+propertyName+'</span>');
+    htmlCode = htmlCode.concat('<span title="'+ strip(subProcess_openModalPropertyInfo(className,propertyName)) +'" class="double-margin propertyName '+ (isOptional ? 'fontNormal': 'fontBold')+ '">'+propertyName + (isOptional ? ' *': '') + '</span>');
     //multipleValuesAllowed -> multiple values button to add new input field
     if(multipleValuesAllowed){
         htmlCode = htmlCode.concat('<span class="double-margin"><a href="javascript:ci_userButton_addValueContainerToPropertyBody(\''+propertyName+'\',\''+rootElementName+'\',\''+level+'\')" class="btn btn-success btn-fab btn-fab-mini my-fab-info" data-toggle="tooltip" data-placement="top" title="add another input field/element"  tabindex="-1" ><i class="material-icons my-fab-icon iconSmall">add</i></a></span>');
@@ -535,16 +569,43 @@ function subProcess_openModalPropertyInfo(className, propertyName) {
             break;
         }
     }
-    console.log(description);
+    //console.log(description);
     return description;
 }
 
-function repairLinksInHTMLCode(htmlCode) {
-    htmlCode = htmlCode.replace(/ href=\"\//g, ' href=\"https://schema.org/');
-    htmlCode = htmlCode.replace(/<a /g, '<a target="_blank" ');
-    return htmlCode;
-}
+function saveAnn(){
+    var url = "https://semantify.it/api/annotation/";
+    var apiKey = "ByYz_MJdb";
 
-function cleanHtmlTags(str) {
-    return str.replace(/<(?:.|\n)*?>/gm, '');
+    var annObj = {};
+    annObj["content"] = outputJsonLd;
+
+    var options = {
+        htmlAllowed: true,
+        style: 'toast',
+        timeout: 3000
+    };
+
+    var bulk = [];
+    var toSend = {};
+    toSend["content"] = outputJsonLd;
+    toSend["cid"] = "my-cid-" + "adfhgsdf-fkjslk8_43urlkds-fw4ulskdj_fw93rlkjes";
+
+    bulk.push(toSend);
+
+    $.ajax({
+        type: "POST",
+        dataType: 'json',
+        url: url + apiKey,
+        data: bulk,
+        success: function (data) {
+            options['content'] ='Saved annotation in semantify';
+            console.log(data);
+            $.snackbar(options);
+        },
+        error: function () {
+            options['content'] = 'Failed to save Annotation in semantify';
+            $.snackbar(options);
+        }
+    });
 }
