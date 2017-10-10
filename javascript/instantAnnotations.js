@@ -59,6 +59,7 @@ function changeSelectedDomainSpecification() {
         "@type" : memoryInput.domainSpecification["dsv:class"][0]["schema:name"]
     };
     $('#textArea').html(syntaxHighlight(JSON.stringify(outputJsonLd, null, 2)));
+    change();
 }
 
 function getAllDS(callback) { //return data
@@ -385,6 +386,10 @@ function ci_setPropertyInputToContainer(inputContainerElement, fromSelect) {
             containerElement.append('<input type="text" class="form-control input-myBackground" id="'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID+'" placeholder="'+propertyName+'">');
             break;
         }
+        $('#'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID).on('input', function() {
+            change();
+        });
+        inputElements.push(rootElementName+'_'+propertyName+'_inputField_'+valueTypeID);
         break;
     case "schema:Class":
             //todo implement
@@ -397,6 +402,10 @@ function ci_setPropertyInputToContainer(inputContainerElement, fromSelect) {
             $('#'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID).append('<option value="'+expectedTypeData["dsv:expectedEnumerationValue"][i]['schema:name']+'">'+expectedTypeData["dsv:expectedEnumerationValue"][i]['schema:name']+'</option>');
         }
         $('#'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID).prop('selectedIndex',0);
+        $('#'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID).on('input', function() {
+            change();
+        });
+        inputElements.push(rootElementName+'_'+propertyName+'_inputField_'+valueTypeID);
         break;
     case "dsv:RestrictedClass":
             // case undefined: //for expected types of restricted class
@@ -406,12 +415,6 @@ function ci_setPropertyInputToContainer(inputContainerElement, fromSelect) {
     default:
         break;
     }
-
-    $('#'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID).on('input', function() {
-        change();
-    });
-
-    inputElements.push(rootElementName+'_'+propertyName+'_inputField_'+valueTypeID);
 }
 
 function change(){
@@ -420,13 +423,28 @@ function change(){
 
     for(var i in inputElements){
         var value = $('#'+inputElements[i]).val();
-        var propName = inputElements[i].replace("ST2Content_", "").split('_')[0];
-        if(value !== undefined && value !== ""){
-            //console.log(propName);
-            outputJsonLd[propName] = value;
+        //console.log(value);
+        var id = inputElements[i].split('_');
+        var topId = id.slice();
+        topId.splice(-1,1);
+        topId.splice(-1,1);
+
+        var propName = id[1];
+        var propNames = [];
+        for(var j = 1; j<id.length; j+=3){
+            propNames.push(id[j]);
         }
-        else if(outputJsonLd.hasOwnProperty(propName)){
-            delete outputJsonLd[propName];
+
+        if(value !== undefined && value !== ""){
+            set(outputJsonLd, propNames.join('.'), value);
+        }
+        else if(hasProp(outputJsonLd, propNames.join('.'))){
+            deleteProp(outputJsonLd, propNames.join('.'));
+        }
+        var link = $('#' + topId.join('_')+'_link').html();
+        if (link !== undefined && link.includes(">visibility<"))
+        {
+            deleteProp(outputJsonLd, propNames.join('.'));
         }
     }
 
@@ -488,13 +506,15 @@ function ci_propertyUsageSwitch(propertyName,rootElementName) {
         memoryProcess[rootElementName].usedOptionalProperties[propertyName] = false;
         $('#'+rootElementName+'_'+propertyName+'_inputAreaContainer').slideUp(500);
         $('#'+rootElementName+'_'+propertyName+'_link').html('<i class="material-icons my-fab-icon iconSmall">visibility</i>');
-        send_snackbarMSG("Property '"+propertyName+"' will not be used for the annotation.", 3000);
+        //send_snackbarMSG("Property '"+propertyName+"' will not be used for the annotation.", 3000);
     } else {
         memoryProcess[rootElementName].usedOptionalProperties[propertyName] = true;
         $('#'+rootElementName+'_'+propertyName+'_inputAreaContainer').slideDown(500);
         $('#'+rootElementName+'_'+propertyName+'_link').html('<i class="material-icons my-fab-icon iconSmall">visibility_off</i>');
-        send_snackbarMSG("Property '"+propertyName+"' is now being used for the annotation.", 3000);
+        //send_snackbarMSG("Property '"+propertyName+"' is now being used for the annotation.", 3000);
     }
+    change();
+    console.log("asd");
 }
 
 function ci_helper_getExpectedTypeObjectForClassName(className, expectedTypeArray){
@@ -608,4 +628,50 @@ function saveAnn(){
             $.snackbar(options);
         }
     });
+}
+
+function set(obj, path, value) {
+    var schema = obj;
+    var pList = path.split('.');
+    var len = pList.length;
+    for(var i = 0; i < len-1; i++) {
+        var elem = pList[i];
+        if( !schema[elem] ) schema[elem] = {};
+        schema = schema[elem];
+    }
+    schema[pList[len-1]] = value;
+    return obj;
+}
+
+function hasProp(obj, path) {
+    var schema = obj;
+    var pList = path.split('.');
+    var len = pList.length;
+    for(var i = 0; i < len-1; i++) {
+        var elem = pList[i];
+        if( !schema[elem] ){
+            //console.log("return");
+            //console.log(schema);
+            //console.log(elem);
+            return false;
+        }
+        schema = schema[elem];
+    }
+    //console.log("hasPorpEnd");
+    return schema.hasOwnProperty(pList[len-1]);
+}
+
+function deleteProp(obj, path) {
+    var schema = obj;
+    var pList = path.split('.');
+    var len = pList.length;
+    for(var i = 0; i < len-1; i++) {
+        var elem = pList[i];
+        if( !schema[elem] ){
+            return;
+        }
+        schema = schema[elem];
+    }
+    delete schema[pList[len-1]];
+    return obj;
 }
