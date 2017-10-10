@@ -425,8 +425,6 @@ function ci_setPropertyInputToContainer(inputContainerElement, fromSelect) {
 
 function change(){
     //console.log("change");
-    //console.log(inputElements);
-
     for(var i in inputElements){
         var value = $('#'+inputElements[i]).val();
         //console.log(value);
@@ -437,26 +435,60 @@ function change(){
 
         var propName = id[1];
         var propNames = [];
+
         for(var j = 1; j<id.length; j+=3){
             propNames.push(id[j]);
         }
 
+        var allPaths=[];
+        var temp=0;
+        while(temp < propNames.length-1){
+          var path;
+          for (var i=0;i<=temp;i++){
+            if(i==0){
+                path=propNames[i];
+            }else{
+                path=path+"."+propNames[i];
+            }
+
+          }
+          allPaths.push(path);
+          temp++;
+          }
+
         if(value !== undefined && value !== ""){
+            for(var path=0;path<allPaths.length;path++){
+              set(outputJsonLd, allPaths[path]+".@type", "herethetype"); //TODO
+            }
             set(outputJsonLd, propNames.join('.'), value);
+
         }
-        else if(hasProp(outputJsonLd, propNames.join('.'))){
+        else if(hasProp(outputJsonLd, propNames.join('.'))){ //TODO also remove upper classes if needed
+          if(allEmpty){ //!
+            for(var path=0;path<allPaths.length;path++){
+              deleteProp(outputJsonLd, allPaths[path]+".@type");
+            }
+            deleteProp(outputJsonLd, propName);
+          }
             deleteProp(outputJsonLd, propNames.join('.'));
+
         }
-        var link = $('#' + topId.join('_')+'_link').html();
+
+        var link = $('#' + topId.join('_')+'_link').html();   //TODO also remove upper classes if needed
         if (link !== undefined && link.includes(">visibility<"))
         {
+          if(allEmpty){//!
+            for(var path=0;path<allPaths.length;path++){
+              deleteProp(outputJsonLd, allPaths[path]+".@type");
+            }
+            deleteProp(outputJsonLd, propName);
+          }
             deleteProp(outputJsonLd, propNames.join('.'));
+
         }
     }
-
     $('#textArea').html(syntaxHighlight(JSON.stringify(outputJsonLd, null, 2)));
 }
-
 
 function ci_createClassAnnotationStructure(rootElementName){
     var rootElement = $('#'+rootElementName);
@@ -520,7 +552,7 @@ function ci_propertyUsageSwitch(propertyName,rootElementName) {
         //send_snackbarMSG("Property '"+propertyName+"' is now being used for the annotation.", 3000);
     }
     change();
-    console.log("asd");
+    //console.log("asd");
 }
 
 function ci_helper_getExpectedTypeObjectForClassName(className, expectedTypeArray){
