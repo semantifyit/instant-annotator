@@ -363,9 +363,15 @@ function ci_setPropertyInputToContainer(inputContainerElement, fromSelect) {
             break;
         case "Date":
             containerElement.append('<input type="date" class="form-control input-myBackground" id="'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID+'">');
+            $('#'+ rootElementName+'_'+propertyName+'_inputField_'+valueTypeID).datetimepicker().on('dp.change',function(){
+                change();
+            });
             break;
         case "DateTime":
-            containerElement.append('<input type="datetime-local" class="form-control input-myBackground" id="'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID+'">');
+            containerElement.append('<input type="text" class="form-control input-myBackground" id="'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID+'">');
+            $('#'+ rootElementName+'_'+propertyName+'_inputField_'+valueTypeID).datetimepicker().on('dp.change',function(){
+                change();
+            });
             break;
         case "Time":
             containerElement.append('<input type="time" class="form-control input-myBackground" id="'+rootElementName+'_'+propertyName+'_inputField_'+valueTypeID+'">');
