@@ -12,12 +12,16 @@ function create() {
 }
 
 function getSpecificDS() {
-  $.getJSON("./json/classes.json", function(json){
-        memoryInput["classes"] = json;
-        //console.log(json);
-      });
 
-    getAllDS(function (data) {
+    getJson("https://semantify.it/assets/data/3.3/classes.json", function (data) {
+        memoryInput["classes"] = data;
+        console.log("ad");
+        cont();
+    });
+}
+
+function cont (){
+    getJson("https://semantify.it/api/domainSpecification", function (data) {
         allDs = data;
         var index = 0;
         var i = 0;
@@ -41,6 +45,8 @@ function getSpecificDS() {
             });
         changeSelectedDomainSpecification();
     });
+
+
 }
 
 
@@ -62,10 +68,10 @@ function changeSelectedDomainSpecification() {
     change();
 }
 
-function getAllDS(callback) { //return data
+function getJson(url, callback) { //return data
     $.ajax({
         type: 'GET',
-        url: 'https://semantify.it/api/domainSpecification',
+        url: url,
         dataType: 'json',
         success: function (data) {
             callback(data);
@@ -464,7 +470,7 @@ function change(){
 
         }
         else if(hasProp(outputJsonLd, propNames.join('.'))){ //TODO also remove upper classes if needed
-          if(allEmpty){ //!
+          if(allEmpty()){ //!
             for(var path=0;path<allPaths.length;path++){
               deleteProp(outputJsonLd, allPaths[path]+".@type");
             }
@@ -488,6 +494,10 @@ function change(){
         }
     }
     $('#textArea').html(syntaxHighlight(JSON.stringify(outputJsonLd, null, 2)));
+}
+
+function allEmpty(){
+    return true;
 }
 
 function ci_createClassAnnotationStructure(rootElementName){
