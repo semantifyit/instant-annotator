@@ -164,7 +164,7 @@ label.myLabel {
 }
 
 select {
-    background: rgba(0, 150, 136, 0.11) url("../images/arrow3.png") no-repeat scroll right 5px center / 9px 6px !important;
+    background: rgba(0, 150, 136, 0.11) url("https://semantify.it/images/arrow3.png") no-repeat scroll right 5px center / 9px 6px !important;
     border-bottom: 1px solid rgba(128, 128, 128, 0.33) !important;
     -moz-appearance: none !important;
     -webkit-appearance: none !important;
