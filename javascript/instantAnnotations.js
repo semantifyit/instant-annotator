@@ -3,7 +3,7 @@ var allDs;
 var classesJson;
 var classesReady = false;
 var DSReady = false;
-
+var panelId = 0;
 
 var inputElements = [];
 var outputJsonLd = {};
@@ -22,20 +22,75 @@ function getData() {
 }
 
 function IA_Create_Deafault(id){
-    addBox(id, "asdasdgdfgdfg");
-    addBox(id, "dfghd");
-    addBox(id, "jghjfgdhj");
+    var btns = [
+        {
+            "name": "Copy",
+            "onclick": function(){
+                console.log("Copy");
+            }
+        },
+        {
+            "name": "Save",
+            "onclick": function(){
+                console.log("save");
+            }
+        }
+    ];
+
+    addBox(id, "59d8963100b7916b851f158d", btns);
+
+    addBox(id, "59d8963100b7916b851f158d");
+    addBox(id, "59d8963100b7916b851f158d");
+    addBox(id, "59d8963100b7916b851f158d");
+    addBox(id, "59d8963100b7916b851f158d");
+    addBox(id, "59d8963100b7916b851f158d");
+    addBox(id, "59d8963100b7916b851f158d");
 }
 
-function addBox(toHtmlId, dsId){
+function addBox(htmlId, dsId, buttons){
     if(!(classesReady && DSReady)){
         setTimeout(function(){
-            addBox(toHtmlId, dsId);
+            addBox(htmlId, dsId, buttons);
         },500);
-        console.log("retry");
         return;
     }
-    console.log("create box");
+    var curDs;
+    for(var i in allDs){
+        if(allDs.hasOwnProperty(i))
+        if(allDs[i]["_id"] === dsId){
+            curDs = allDs[i];
+            break;
+        }
+    }
+    var dsName = (curDs === undefined ? "DS not found" : curDs["name"]);
+
+    $('#'+htmlId).append(
+        '<div class="panel panel-info col-lg-3 col-md-4 col-sm-6" id="panel-' + panelId + '" style="margin: 10px; padding: 10px;" >'+
+            '<div class="panel-heading sti-red"> ' +
+                '<h3>' + dsName + '</h3>' +
+            ' </div> ' +
+            '<div class="panel-body" id="panel-body-"' + panelId + '>' +
+                'asd'+
+            '</div>'+
+            '<div class="panel-footer text-center" id="panel-footer-' + panelId + '">' +
+            '</div>'+
+        '</div>');
+
+    for(var j in buttons){
+        if(buttons.hasOwnProperty(j)){
+            (function(){    // because the onclick changes with each loop all buttons would call the same function
+                var name = buttons[j]["name"];
+                var onclick = buttons[j]["onclick"];
+                $('#'+'panel-footer-'+panelId)
+                    .append('<button class="btn button-sti-red " style="margin: 0 5px" >'+ name +'</button>')
+                    .click(function() {
+                        onclick();
+                    });
+            })();
+        }
+    }
+
+    panelId++;
 }
 
 
