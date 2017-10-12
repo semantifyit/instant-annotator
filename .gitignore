@@ -3,6 +3,7 @@
 .idea/workspace.xml
 swagger/swagger-bundle.yml
 test1.txt
+data/*
 
 # backup folder
 backup/
