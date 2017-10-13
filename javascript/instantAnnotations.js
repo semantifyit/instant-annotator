@@ -38,13 +38,12 @@ function IA_Create_Deafault(id){
     ];
 
     addBox(id, "59d8963100b7916b851f158d", btns);
-
     addBox(id, "59d8963100b7916b851f158d");
     addBox(id, "59d8963100b7916b851f158d");
-    addBox(id, "59d8963100b7916b851f158d");
-    addBox(id, "59d8963100b7916b851f158d");
-    addBox(id, "59d8963100b7916b851f158d");
-    addBox(id, "59d8963100b7916b851f158d");
+    //addBox(id, "59d8963100b7916b851f158d");
+    //addBox(id, "59d8963100b7916b851f158d");
+    //addBox(id, "59d8963100b7916b851f158d");
+    //addBox(id, "59d8963100b7916b851f158d");
 }
 
 function addBox(htmlId, dsId, buttons){
@@ -58,31 +57,77 @@ function addBox(htmlId, dsId, buttons){
     for(var i in allDs){
         if(allDs.hasOwnProperty(i))
         if(allDs[i]["_id"] === dsId){
-            curDs = allDs[i];
+            curDs = allDs[i]["content"];
             break;
         }
     }
-    var dsName = (curDs === undefined ? "DS not found" : curDs["name"]);
+    var dsName = (curDs === undefined ? "DS not found" : curDs["schema:name"]);
 
+    var footer = (buttons && buttons.length > 0 ? '<div class="panel-footer text-center" id="panel-footer-' + panelId + '"></div>' : '');      //only display fppts if there are some buttons
     $('#'+htmlId).append(
         '<div class="panel panel-info col-lg-3 col-md-4 col-sm-6" id="panel-' + panelId + '" style="margin: 10px; padding: 10px;" >'+
             '<div class="panel-heading sti-red"> ' +
                 '<h3>' + dsName + '</h3>' +
             ' </div> ' +
-            '<div class="panel-body" id="panel-body-"' + panelId + '>' +
-                'asd'+
+            '<div class="panel-body" id="panel-body-' + panelId + '">' +
             '</div>'+
-            '<div class="panel-footer text-center" id="panel-footer-' + panelId + '">' +
-            '</div>'+
+            footer +
         '</div>');
+
+    var dsProps = curDs["dsv:class"][0]["dsv:property"];
+    var req_props = [];
+    var opt_props = [];
+    var props = getProps(dsProps, "");
+    props.forEach(function(prop){
+        if(prop["isOptional"]){
+            opt_props.push(prop)
+        }
+        else{
+            req_props.push(prop)
+        }
+    });
+
+    req_props.forEach(function(p){
+        var id = p["name"] + "_" + p["type"];
+        $('#panel-body-' + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="'+p["name"]+'">');
+    });
+
+    if(opt_props.length > 0){
+        $('#'+'panel-body-' + panelId)
+            .append('<button type="button" class="btn btn-block btn-default text-left" id="panel-body-opt-btn-' + panelId + '" style="background-color: lightgrey;">Optional Fields <span class="caret"></button>')
+            .append('<div id="panel-body-opt-' + panelId + '"> </div>');
+
+        // ok this is because if you call onclick it would use the last recent panelId and not the current one
+        (function(arg){
+            $('#'+'panel-body-opt-btn-' + arg).click(function () {
+                var optionalContainer = $('#panel-body-opt-' + arg);
+                if(optionalContainer.css('display') === 'none') {
+                    optionalContainer.slideDown(500);
+                }
+                else{
+                    optionalContainer.slideUp(500);
+                }
+            });
+        })(panelId);
+
+        opt_props.forEach(function(p) {
+            var id = p["name"] + "_" + p["type"];
+            $('#panel-body-opt-' + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + p["name"] + '">');
+        });
+
+        $('#panel-body-opt-' + panelId).slideUp(0);
+
+    }
+
 
     for(var j in buttons){
         if(buttons.hasOwnProperty(j)){
             (function(){    // because the onclick changes with each loop all buttons would call the same function
                 var name = buttons[j]["name"];
                 var onclick = buttons[j]["onclick"];
-                $('#'+'panel-footer-'+panelId)
-                    .append('<button class="btn button-sti-red " style="margin: 0 5px" >'+ name +'</button>')
+                $('#panel-footer-'+panelId)
+                    .append('<button class="btn button-sti-red" id="panel-footer-btn-' + name + '-' + panelId + '" style="margin: 0 5px" >'+ name +'</button>');
+                $('#panel-footer-btn-' + name + '-' + panelId)
                     .click(function() {
                         onclick();
                     });
@@ -91,6 +136,26 @@ function addBox(htmlId, dsId, buttons){
     }
 
     panelId++;
+}
+
+function getProps(props, level){
+    var propList = [];
+
+    for(var p in props){
+        var prop = props[p];
+        if(prop['dsv:expectedType'][0]['@type'] !== "dsv:RestrictedClass"){
+            var simpleProp = {
+                "name": (level === "" ? "" : level + ": ") + prop["schema:name"],
+                "type": prop["dsv:expectedType"][0]["schema:name"],
+                "isOptional" : prop["dsv:isOptional"]
+            };
+            propList.push(simpleProp);
+        }
+        else{
+            propList = propList.concat(getProps(prop['dsv:expectedType'][0]["dsv:property"], (level === "" ? prop["schema:name"] : level + ": " + prop["schema:name"])));
+        }
+    }
+    return propList;
 }
 
 
