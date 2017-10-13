@@ -78,6 +78,7 @@ function addBox(htmlId, dsId, buttons){
     var req_props = [];
     var opt_props = [];
     var props = getProps(dsProps, "");
+    console.log(props);
     props.forEach(function(prop){
         if(prop["isOptional"]){
             opt_props.push(prop)
@@ -149,6 +150,16 @@ function getProps(props, level){
                 "type": prop["dsv:expectedType"][0]["schema:name"],
                 "isOptional" : prop["dsv:isOptional"]
             };
+
+            if(prop['dsv:expectedType'][0]['@type'] === 'dsv:RestrictedEnumeration'){
+                simpleProp["type"] = "Enumeration";
+                var enums = [];
+                prop['dsv:expectedType'][0]['dsv:expectedEnumerationValue'].forEach(function(ele){
+                    enums.push(ele["schema:name"]);
+                });
+                simpleProp["enums"] = enums;
+            }
+
             propList.push(simpleProp);
         }
         else{
