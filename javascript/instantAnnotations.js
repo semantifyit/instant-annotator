@@ -93,7 +93,7 @@ function addBox(htmlId, dsId, buttons){
     });
 
     req_props.forEach(function(p){
-      insertInputField(panelId,p["name"],p["type"],p["enums"],"#panel-body-")
+      insertInputField(panelId,p["name"],p["type"],p["enums"],"#panel-body-",false)
       });
 
     if(opt_props.length > 0){
@@ -115,7 +115,7 @@ function addBox(htmlId, dsId, buttons){
         })(panelId);
 
         opt_props.forEach(function(p) {
-          insertInputField(panelId,p["name"],p["type"],p["enums"],"#panel-body-opt-")
+          insertInputField(panelId,p["name"],p["type"],p["enums"],"#panel-body-opt-",true)
         });
 
         $('#panel-body-opt-' + panelId).slideUp(0);
@@ -143,8 +143,8 @@ function addBox(htmlId, dsId, buttons){
 
 
 
-function insertInputField(panelId,name,type,enumerations,panel){
-  var id = panelId + "_" + type+ "_" +name;
+function insertInputField(panelId,name,type,enumerations,panel,optional){
+  var id = panelId + "_" + type+ "_" +name + "_" + optional;
   id=id.replace(/:/g, "+");
     switch(type){
       case "Text": $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '">');
@@ -217,10 +217,13 @@ function getProps(props, level){
 }
 
 function createJsonLd(id){
-  var resultJson;
   var dsName=panelDs[id];
   var schemaName=panelRoots[id];
   var jsonDs;
+  resultJson = {
+      "@context": "http://schema.org",
+      "@type" : schemaName
+  };
   for(var i in allDs){
       if(allDs.hasOwnProperty(i))
       if(allDs[i]["content"]["schema:name"] === dsName){
@@ -228,22 +231,34 @@ function createJsonLd(id){
           break;
       }
   }
-  console.log(jsonDs)
+  var allRequired=true; //variable gets false if an required field is empty
   var allInputs = $( ":input" );
   allInputs.each(function(){
-    if($(this).attr('id').charAt(0)==id){ //only inputs in same panel
-
+    if($(this).attr('id').charAt(0)==id){ //only inputs from same panel
       var value=$(this).val();
       var fullPath=$(this).attr('id')
-      //fullPath=fullPath.replace(/+/g, ":")
+      fullPath=fullPath.replace(/\+/g, ".")
+      fullPath=fullPath.replace(/ /g, "")
       var path = fullPath.split('_');
+      var optional=path[3];
       path=path[2]
-      console.log(value)
-      console.log(path)
+      if((value==undefined || value=="") && optional=="false"){
+        allRequired=false;
+      }
+      if (!(value==undefined || value=="")){
+        resultJson=set(resultJson, path, value)
+      }
+
     }
 
   });
-
+  if(allRequired){
+    console.log(JSON.stringify(resultJson))
+    return resultJson;
+  }else{
+    alert("Please fill in all reqired fields")
+    return null;
+  }
 }
 
 
