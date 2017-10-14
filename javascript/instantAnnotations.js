@@ -5,7 +5,8 @@ var classesReady = false;
 var DSReady = false;
 var panelId = 0;
 
-var inputElements = [];
+var panelDs=[];
+var panelRoots=[];
 var outputJsonLd = {};
 
 getData();
@@ -25,8 +26,10 @@ function IA_Create_Deafault(id){
     var btns = [
         {
             "name": "Copy",
-            "onclick": function(){
+            "onclick": function(id){
                 console.log("Copy");
+                var jsonLd=createJsonLd(id);
+
             }
         },
         {
@@ -38,9 +41,9 @@ function IA_Create_Deafault(id){
     ];
 
     addBox(id, "59d8963100b7916b851f158d", btns);
+    addBox(id, "59d8963100b7916b851f158d",btns);
+    addBox(id, "59d8963100b7916b851f158d",btns);
     addBox(id, "59d8963100b7916b851f158d");
-    addBox(id, "59d8963100b7916b851f158d");
-    //addBox(id, "59d8963100b7916b851f158");
     //addBox(id, "59d8963100b7916b851f158d");
     //addBox(id, "59d8963100b7916b851f158d");
     //addBox(id, "59d8963100b7916b851f158d");
@@ -73,7 +76,8 @@ function addBox(htmlId, dsId, buttons){
             '</div>'+
             footer +
         '</div>');
-
+    panelDs.push(curDs["schema:name"])
+    panelRoots.push(curDs["dsv:class"][0]["schema:name"])
     var dsProps = curDs["dsv:class"][0]["dsv:property"];
     var req_props = [];
     var opt_props = [];
@@ -120,24 +124,28 @@ function addBox(htmlId, dsId, buttons){
 
     for(var j in buttons){
         if(buttons.hasOwnProperty(j)){
-            (function(){    // because the onclick changes with each loop all buttons would call the same function
+            (function(arg){    // because the onclick changes with each loop all buttons would call the same function
                 var name = buttons[j]["name"];
                 var onclick = buttons[j]["onclick"];
                 $('#panel-footer-'+panelId)
                     .append('<button class="btn button-sti-red" id="panel-footer-btn-' + name + '-' + panelId + '" style="margin: 0 5px" >'+ name +'</button>');
                 $('#panel-footer-btn-' + name + '-' + panelId)
                     .click(function() {
-                        onclick();
+                        onclick(arg);
                     });
-            })();
+            })(panelId);
         }
     }
 
     panelId++;
 }
 
+
+
+
 function insertInputField(panelId,name,type,enumerations,panel){
-  var id = name + "_" + type+ "_" +panelId;
+  var id = panelId + "_" + type+ "_" +name;
+  id=id.replace(/:/g, "+");
     switch(type){
       case "Text": $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '">');
       break;
@@ -148,10 +156,10 @@ function insertInputField(panelId,name,type,enumerations,panel){
       case "Boolean": $(panel+ panelId).append('<input type="checkbox" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '"><label for='+id+'>'+name+'</label>');
       break;
       case "Date": $(panel + panelId).append('<input type="date" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '">');
-      //   $('#'+id).datetimepicker() //ERROR: No : allowed in id!!
+         $('#'+id).datetimepicker() //ERROR: No : allowed in id!!
       break;
-      case "DateTime": $(panel + panelId).append('<input type="datetime" class="form-control input-myBackground" id="' + 123 + '" placeholder="' + name + '">');
-       //   $('#'+id).datetimepicker()  //ERROR: No : allowed in id!!!
+      case "DateTime": $(panel + panelId).append('<input type="datetime" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '">');
+          $('#'+id).datetimepicker()  //ERROR: No : allowed in id!!!
       break;
       case "Time": $(panel + panelId).append('<input type="time" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '">');
       break;
@@ -162,6 +170,10 @@ function insertInputField(panelId,name,type,enumerations,panel){
       case "Enumeration":
       $(panel + panelId).append('<select name="select" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '">'+name+'</select>');
       var temp = document.getElementById(id);
+      var opt = document.createElement('option');
+      opt.innerHTML = "";
+      opt.value = "";
+      temp.appendChild(opt);
       enumerations.forEach(function(e){
         var opt = document.createElement('option');
         opt.innerHTML = e;
@@ -169,7 +181,6 @@ function insertInputField(panelId,name,type,enumerations,panel){
         temp.appendChild(opt);
       });
       break;
-
     }
   }
 
@@ -203,6 +214,36 @@ function getProps(props, level){
         }
     }
     return propList;
+}
+
+function createJsonLd(id){
+  var resultJson;
+  var dsName=panelDs[id];
+  var schemaName=panelRoots[id];
+  var jsonDs;
+  for(var i in allDs){
+      if(allDs.hasOwnProperty(i))
+      if(allDs[i]["content"]["schema:name"] === dsName){
+          jsonDs = allDs[i]["content"];
+          break;
+      }
+  }
+  console.log(jsonDs)
+  var allInputs = $( ":input" );
+  allInputs.each(function(){
+    if($(this).attr('id').charAt(0)==id){ //only inputs in same panel
+
+      var value=$(this).val();
+      var fullPath=$(this).attr('id')
+      //fullPath=fullPath.replace(/+/g, ":")
+      var path = fullPath.split('_');
+      path=path[2]
+      console.log(value)
+      console.log(path)
+    }
+
+  });
+
 }
 
 
