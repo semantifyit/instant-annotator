@@ -7,6 +7,7 @@ var panelId = 0;
 
 var panelDs=[];
 var panelRoots=[];
+var typeList=[];
 var outputJsonLd = {};
 
 getData();
@@ -42,9 +43,9 @@ function IA_Create_Deafault(id){
 
     addBox(id, "59d8963100b7916b851f158d", btns);
     addBox(id, "59d8963100b7916b851f158d",btns);
-    addBox(id, "59d8963100b7916b851f158d",btns);
-    addBox(id, "59d8963100b7916b851f158d");
+    addBox(id, "591f28a05ad3c960c3fd14c6",btns);
     //addBox(id, "59d8963100b7916b851f158d");
+    addBox(id, "59d8963100b7916b851f158d");
     //addBox(id, "59d8963100b7916b851f158d");
     //addBox(id, "59d8963100b7916b851f158d");
 }
@@ -210,6 +211,14 @@ function getProps(props, level){
             propList.push(simpleProp);
         }
         else{
+            myLevel=level === "" ? prop["schema:name"] : level + "." + prop["schema:name"];
+            path=myLevel+".@type"
+            var pathType = {
+              "name" : prop['dsv:expectedType'][0]['schema:name'],
+              "path": path,
+              "panelId" : panelId
+            }
+            typeList.push(pathType);
             propList = propList.concat(getProps(prop['dsv:expectedType'][0]["dsv:property"], (level === "" ? prop["schema:name"] : level + ": " + prop["schema:name"])));
         }
     }
@@ -220,6 +229,8 @@ function createJsonLd(id){
   var dsName=panelDs[id];
   var schemaName=panelRoots[id];
   var jsonDs;
+  var validPaths=[];
+  var allPaths=[];
   resultJson = {
       "@context": "http://schema.org",
       "@type" : schemaName
@@ -245,18 +256,47 @@ function createJsonLd(id){
       if((value==undefined || value=="") && optional=="false"){
         allRequired=false;
       }
-      if (!(value==undefined || value=="")){
+      typeList.forEach(function(t){
+        if(t["panelId"]===id){
+          var typePath={
+            "name":t["name"],
+            "path":t["path"]
+          }
+          allPaths.push(typePath)
+        }
+      })
+      if (!(value===undefined || value==="")){
+
+        var temp=path.split(".");
+        while(temp.length>1){
+          temp.pop();
+          var x=temp.join(".")+".@type"
+          validPaths.push(x);
+        }
+
+        allPaths.forEach(function(a){
+          validPaths.forEach(function(v){
+            if(v===a["path"]){
+              resultJson=set(resultJson, a["path"], a["name"])
+            }
+
+          });
+        });
+
         resultJson=set(resultJson, path, value)
       }
-
     }
 
   });
   if(allRequired){
-    console.log(JSON.stringify(resultJson))
-    return resultJson;
+    console.log(allPaths.length)
+    console.log(validPaths.length)
+
+    var result=(JSON.stringify(resultJson))
+    console.log(result)
+    return result;
   }else{
-    alert("Please fill in all reqired fields")
+    send_snackbarMSG("Please fill in all reqired fields", 3000);
     return null;
   }
 }
