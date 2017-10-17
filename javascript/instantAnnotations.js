@@ -77,7 +77,7 @@ function IA_Create_Default(id) {
 
     addBox(id, "59d8963100b7916b851f158d", btns);
     addBox(id, "59d8963100b7916b851f158d", btns);
-    addBox(id, "591f28a05ad3c960c3fd14c6", btns);
+    //addBox(id, "591f28a05ad3c960c3fd14c6", btns);
     //addBox(id, "59d8963100b7916b851f158d");
     addBox(id, "59d8963100b7916b851f158d");
     //addBox(id, "59d8963100b7916b851f158d");
@@ -100,8 +100,9 @@ function addBox(htmlId, dsId, buttons) {
             }
     }
     var dsName = (curDs === undefined ? "DS not found" : curDs["schema:name"]);
+    var dsType = curDs["dsv:class"][0]["schema:name"];
 
-    var footer = (buttons && buttons.length > 0 ? '<div class="panel-footer text-center" id="panel-footer-' + panelId + '"></div>' : '');      //only display fppts if there are some buttons
+    var footer = (buttons && buttons.length > 0 ? '<div class="panel-footer text-center" id="panel-footer-' + panelId + '"></div>' : '');      //only display footer if there are some buttons
     $('#' + htmlId).append(
         '<div class="panel panel-info col-lg-3 col-md-4 col-sm-6" id="panel-' + panelId + '" style="margin: 10px; padding: 10px;" >' +
         '<div class="panel-heading sti-red"> ' +
@@ -116,8 +117,8 @@ function addBox(htmlId, dsId, buttons) {
     var dsProps = curDs["dsv:class"][0]["dsv:property"];
     var req_props = [];
     var opt_props = [];
-    var props = getProps(dsProps, "");
-    //console.log(props);
+    var props = getProps(dsProps, "", dsType);
+
     props.forEach(function (prop) {
         if (prop["isOptional"]) {
             opt_props.push(prop)
@@ -128,7 +129,7 @@ function addBox(htmlId, dsId, buttons) {
     });
 
     req_props.forEach(function (p) {
-        insertInputField(panelId, p["name"], p["type"], p["enums"], "#panel-body-", false)
+        insertInputField(panelId, p["name"], getDesc(p["fatherType"], p["simpleName"]) ,p["type"], p["enums"], "#panel-body-", false)
     });
 
     if (opt_props.length > 0) {
@@ -150,7 +151,7 @@ function addBox(htmlId, dsId, buttons) {
         })(panelId);
 
         opt_props.forEach(function (p) {
-            insertInputField(panelId, p["name"], p["type"], p["enums"], "#panel-body-opt-", true)
+            insertInputField(panelId, p["name"], getDesc(p["fatherType"], p["simpleName"]) , p["type"], p["enums"], "#panel-body-opt-", true)
         });
 
         $('#panel-body-opt-' + panelId).slideUp(0);
@@ -178,40 +179,40 @@ function addBox(htmlId, dsId, buttons) {
 }
 
 
-function insertInputField(panelId, name, type, enumerations, panel, optional) {
+function insertInputField(panelId, name, desc, type, enumerations, panel, optional) {
     var id = panelId + "_" + type + "_" + name + "_" + optional;
     id = id.replace(/:/g, "-").replace(/ /g, '');
     switch (type) {
         case "Text":
         case "URL":
-            $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '">');
+            $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
             break;
         case "Integer":
         case "Number":
         case "Float":
-            $(panel + panelId).append('<input type="number" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '">');
+            $(panel + panelId).append('<input type="number" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
             break;
         case "Boolean":
-            $(panel + panelId).append('<input type="checkbox" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '"><label for=' + id + '>' + name + '</label>');
+            $(panel + panelId).append('<input type="checkbox" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '"><label for=' + id + '>' + name + '</label>');
             break;
         case "Date":
-            $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '">');
+            $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
             $('#' + id).datetimepicker({
                 format: 'L'
             });
             break;
         case "DateTime":
-            $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '">');
+            $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
             $('#' + id).datetimepicker();
             break;
         case "Time":
-            $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '">');
+            $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
             $('#' + id).datetimepicker({
                 format: 'LT'
             });
             break;
         case "Enumeration":
-            $(panel + panelId).append('<select name="select" class="form-control input-myBackground" id="' + id + '">');
+            $(panel + panelId).append('<select name="select" class="form-control input-myBackground" id="' + id + '" title=" ' + desc + '">');
             var enumField = $('#' + id);
             enumField.append('<option value="" disabled selected>Select: ' + name + '</option>');
             enumerations.forEach(function (e) {
@@ -223,17 +224,31 @@ function insertInputField(panelId, name, type, enumerations, panel, optional) {
     inputFields.push(id);
 }
 
+function getDesc(className, propertyName) {
+    for(var i=0;i<classesJson[className]["properties"].length;i++){
+        if(propertyName === classesJson[className]["properties"][i]["name"]){
+            return strip(classesJson[className]["properties"][i]["description"]);
+        }
+    }
+}
 
-function getProps(props, level) {
+function strip(html) {
+    var tmp = document.createElement('DIV');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+}
+
+function getProps(props, level, fatherType) {
     var propList = [];
-
     for (var p in props) {
         if (!props.hasOwnProperty(p)) continue;
         var prop = props[p];
         if (prop['dsv:expectedType'][0]['@type'] !== "dsv:RestrictedClass") {
             var simpleProp = {
+                "simpleName": prop["schema:name"],
                 "name": (level === "" ? "" : level + ": ") + prop["schema:name"],
                 "type": prop["dsv:expectedType"][0]["schema:name"],
+                "fatherType": fatherType,
                 "isOptional": prop["dsv:isOptional"]
             };
 
@@ -257,7 +272,7 @@ function getProps(props, level) {
                 "panelId": panelId
             };
             typeList.push(pathType);
-            propList = propList.concat(getProps(prop['dsv:expectedType'][0]["dsv:property"], (level === "" ? prop["schema:name"] : level + ": " + prop["schema:name"])));
+            propList = propList.concat(getProps(prop['dsv:expectedType'][0]["dsv:property"], (level === "" ? prop["schema:name"] : level + ": " + prop["schema:name"]), prop['dsv:expectedType'][0]["schema:name"]));
         }
     }
     return propList;
@@ -284,7 +299,7 @@ function createJsonLd(id) {
     var allInputs = $(":input");
 
     inputFields.forEach(function(a){
-        var compareId=a.slice(0, a.indexOf("_"))
+        var compareId=a.slice(0, a.indexOf("_"));
         if (compareId === id.toString()) { //only inputs from same panel
             var value = $("#"+a).val();
             var fullPath = a;
