@@ -7,6 +7,7 @@ var panelId = 0;
 var panelDs = [];
 var panelRoots = [];
 var typeList = [];
+var inputFields=[];
 var outputJsonLd = {};
 
 getData();
@@ -219,6 +220,7 @@ function insertInputField(panelId, name, type, enumerations, panel, optional) {
             enumField.append('</select>');
             break;
     }
+    inputFields.push(id);
 }
 
 
@@ -280,11 +282,12 @@ function createJsonLd(id) {
     }
     var allRequired = true; //variable gets false if an required field is empty
     var allInputs = $(":input");
-    allInputs.each(function () {
-        if($(this).attr('id'))
-        if ($(this).attr('id').charAt(0) === id.toString()) { //only inputs from same panel
-            var value = $(this).val();
-            var fullPath = $(this).attr('id');
+
+    inputFields.forEach(function(a){
+        var compareId=a.slice(0, a.indexOf("_"))
+        if (compareId === id.toString()) { //only inputs from same panel
+            var value = $("#"+a).val();
+            var fullPath = a;
             fullPath = fullPath.replace(/\-/g, ".");
             fullPath = fullPath.replace(/ /g, "");
             var path = fullPath.split('_');
