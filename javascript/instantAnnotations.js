@@ -7,12 +7,86 @@ var panelId = 0;
 var panelDs = [];
 var panelRoots = [];
 var typeList = [];
-var inputFields=[];
+var inputFields = [];
 var outputJsonLd = {};
+
+var copyBtn = {
+    "name": "Copy",
+    "onclick": function (jsonLd) {
+        console.log("Copy");
+        console.log(jsonLd);
+        if (jsonLd)
+            copyStr(jsonLd.toString());
+    }
+};
+var saveBtn = {
+    "name": "Save",
+    "onclick": function (jsonLd) {
+        console.log("save");
+    }
+};
+var previewBtn = {
+    "name": "Preview",
+    "onclick": function (jsonLd) {
+        if (jsonLd === null) {
+            return;
+        }
+        console.log("preview");
+        var dummy = document.createElement("div");
+        document.body.appendChild(dummy);
+        dummy.setAttribute("id", "preview_id");
+        $('#preview_id').append(
+            '<div class="modal fade" id="myModal" role="dialog">' +
+            '<div class="modal-dialog">' +
+            '<div class="modal-content">' +
+            '<div class="modal-header">' +
+            '<button type="button" class="close" data-dismiss="modal">&times;</button>' +
+            '<h4 class="modal-title">Preview JSON-LD</h4>' +
+            '</div>' +
+            '<div class="modal-body">' +
+            '<pre id="preview_textArea" style="max-height: 500px;"></pre>' +
+            '</div>' +
+            '<div class="modal-footer">' +
+            '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>'
+        );
+        $('#preview_textArea').html(syntaxHighlight(JSON.stringify(JSON.parse(jsonLd), null, 2)));
+        $('#myModal').modal();
+    }
+};
+
+var defaultBtns = [copyBtn, previewBtn];
 
 getData();
 
+$('.IA_Box').each(function () {
+    var dsID = $(this).data("dsid");
+    var buttonsChoise = $(this).data("btns");
+    var buttons;
+    switch (buttonsChoise) {
+        case "no" :
+            buttons = [];
+            break;
+        case "default":
+        case undefined:
+        case null:
+            buttons = defaultBtns;
+    }
+    $(this).append(
+        '<div id="loading' + panelId + '" class="col-lg-3 col-md-4 col-sm-6 text-center" style="margin: 10px; padding: 10px; background: white; border-radius: 10px;">'+
+        '<img src="https://semantify.it/images/loading.gif">'+
+        '</div>'
+    );
+    addBox($(this), panelId, dsID, buttons);
+    panelId++;
+
+});
+
 function getData() {
+    // https://semantify.it/assets/data/latest/classes.json // not yet deployed
     call("https://semantify.it/assets/data/3.3/classes.json", function (data) {
         classesJson = data;
         classesReady = true;
@@ -23,74 +97,18 @@ function getData() {
     });
 }
 
-function IA_Create_Default(id) {
-    var copyBtn =
-        {
-            "name": "Copy",
-            "onclick": function (jsonLd) {
-                console.log("Copy");
-                console.log(jsonLd);
-                if(jsonLd)
-                copyStr(jsonLd.toString());
-            }
-        };
-    var saveBtn =
-        {
-            "name": "Save",
-            "onclick": function (jsonLd) {
-                console.log("save");
-            }
-        };
-    var previewBtn = {
-        "name": "Preview",
-        "additionalClasses": 'data-toggle="modal" data-target="#myModal"',
-        "onclick": function (jsonLd) {
-            if(jsonLd === null){
-                return;
-            }
-            console.log("preview");
-            var dummy = document.createElement("div");
-            document.body.appendChild(dummy);
-            dummy.setAttribute("id", "preview_id");
-            $('#preview_id').append(
-                '<div class="modal fade" id="myModal" role="dialog">' +
-                '<div class="modal-dialog">' +
-                '<div class="modal-content">' +
-                '<div class="modal-header">' +
-                '<button type="button" class="close" data-dismiss="modal">&times;</button>' +
-                '<h4 class="modal-title">Preview JSON-LD</h4>' +
-                '</div>' +
-                '<div class="modal-body">' +
-                '<pre id="preview_textArea" style="max-height: 500px;"></pre>'+
-                '</div>' +
-                '<div class="modal-footer">' +
-                '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>' +
-                '</div>' +
-                '</div>' +
-                '</div>' +
-                '</div>'
-            );
-            $('#preview_textArea').html(syntaxHighlight(JSON.stringify(JSON.parse(jsonLd), null, 2)));
-        }
-    };
-    var btns = [copyBtn, previewBtn];
 
-    addBox(id, "59d8963100b7916b851f158d", btns);
-    addBox(id, "59d8963100b7916b851f158d", btns);
-    //addBox(id, "591f28a05ad3c960c3fd14c6", btns);
-    //addBox(id, "59d8963100b7916b851f158d");
-    addBox(id, "59d8963100b7916b851f158d");
-    //addBox(id, "59d8963100b7916b851f158d");
-    //addBox(id, "59d8963100b7916b851f158d");
-}
+function addBox(jqueryElement, myPanelId, dsId, buttons) {
 
-function addBox(htmlId, dsId, buttons) {
     if (!(classesReady && DSReady)) {
         setTimeout(function () {
-            addBox(htmlId, dsId, buttons);
+            addBox(jqueryElement, myPanelId, dsId, buttons);
         }, 100);
         return;
     }
+
+    $('#loading'+myPanelId).hide();
+
     var curDs;
     for (var i in allDs) {
         if (allDs.hasOwnProperty(i))
@@ -102,13 +120,13 @@ function addBox(htmlId, dsId, buttons) {
     var dsName = (curDs === undefined ? "DS not found" : curDs["schema:name"]);
     var dsType = curDs["dsv:class"][0]["schema:name"];
 
-    var footer = (buttons && buttons.length > 0 ? '<div class="panel-footer text-center" id="panel-footer-' + panelId + '"></div>' : '');      //only display footer if there are some buttons
-    $('#' + htmlId).append(
-        '<div class="panel panel-info col-lg-3 col-md-4 col-sm-6" id="panel-' + panelId + '" style="margin: 10px; padding: 10px;" >' +
+    var footer = (buttons && buttons.length > 0 ? '<div class="panel-footer text-center" id="panel-footer-' + myPanelId + '"></div>' : '');      //only display footer if there are some buttons
+    jqueryElement.append(
+        '<div class="panel panel-info col-lg-3 col-md-4 col-sm-6" id="panel-' + myPanelId + '" style="margin: 10px; padding: 10px;" >' +
         '<div class="panel-heading sti-red"> ' +
         '<h3>' + dsName + '</h3>' +
         '</div> ' +
-        '<div class="panel-body" id="panel-body-' + panelId + '">' +
+        '<div class="panel-body" id="panel-body-' + myPanelId + '">' +
         '</div>' +
         footer +
         '</div>');
@@ -129,13 +147,13 @@ function addBox(htmlId, dsId, buttons) {
     });
 
     req_props.forEach(function (p) {
-        insertInputField(panelId, p["name"], getDesc(p["fatherType"], p["simpleName"]) ,p["type"], p["enums"], "#panel-body-", false)
+        insertInputField(myPanelId, p["name"], getDesc(p["fatherType"], p["simpleName"]), p["type"], p["enums"], "#panel-body-", false)
     });
 
     if (opt_props.length > 0) {
-        $('#' + 'panel-body-' + panelId)
-            .append('<button type="button" class="btn btn-block btn-default text-left" id="panel-body-opt-btn-' + panelId + '" style="background-color: lightgrey;">Optional Fields <span class="caret"></button>')
-            .append('<div id="panel-body-opt-' + panelId + '"> </div>');
+        $('#' + 'panel-body-' + myPanelId)
+            .append('<button type="button" class="btn btn-block btn-default text-left" id="panel-body-opt-btn-' + myPanelId + '" style="background-color: lightgrey;">Optional Fields <span class="caret"></button>')
+            .append('<div id="panel-body-opt-' + myPanelId + '"> </div>');
 
         // this is because if you call onclick it would use the last recent panelId and not the current one
         (function (arg) {
@@ -148,13 +166,13 @@ function addBox(htmlId, dsId, buttons) {
                     optionalContainer.slideUp(500);
                 }
             });
-        })(panelId);
+        })(myPanelId);
 
         opt_props.forEach(function (p) {
-            insertInputField(panelId, p["name"], getDesc(p["fatherType"], p["simpleName"]) , p["type"], p["enums"], "#panel-body-opt-", true)
+            insertInputField(myPanelId, p["name"], getDesc(p["fatherType"], p["simpleName"]), p["type"], p["enums"], "#panel-body-opt-", true)
         });
 
-        $('#panel-body-opt-' + panelId).slideUp(0);
+        $('#panel-body-opt-' + myPanelId).slideUp(0);
 
     }
 
@@ -165,17 +183,15 @@ function addBox(htmlId, dsId, buttons) {
                 var onclick = buttons[j]["onclick"];
                 var additionalClasses = buttons[j]["additionalClasses"];
 
-                $('#panel-footer-' + panelId)
-                    .append('<button class="btn button-sti-red" id="panel-footer-btn-' + name + '-' + panelId + '" style="margin: 0 5px" ' + additionalClasses + '>' + name + '</button>');
-                $('#panel-footer-btn-' + name + '-' + panelId)
+                $('#panel-footer-' + myPanelId)
+                    .append('<button class="btn button-sti-red" id="panel-footer-btn-' + name + '-' + myPanelId + '" style="margin: 0 5px" ' + additionalClasses + '>' + name + '</button>');
+                $('#panel-footer-btn-' + name + '-' + myPanelId)
                     .click(function () {
                         onclick(createJsonLd(arg));
                     });
-            })(panelId);
+            })(myPanelId);
         }
     }
-
-    panelId++;
 }
 
 
@@ -225,8 +241,8 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
 }
 
 function getDesc(className, propertyName) {
-    for(var i=0;i<classesJson[className]["properties"].length;i++){
-        if(propertyName === classesJson[className]["properties"][i]["name"]){
+    for (var i = 0; i < classesJson[className]["properties"].length; i++) {
+        if (propertyName === classesJson[className]["properties"][i]["name"]) {
             return strip(classesJson[className]["properties"][i]["description"]);
         }
     }
@@ -285,7 +301,7 @@ function createJsonLd(id) {
     var validPaths = [];
     var allPaths = [];
     var resultJson = {
-        "@context": "http://schema.org",
+        "@context": "http://schema.org/",
         "@type": schemaName
     };
     for (var i in allDs) {
@@ -298,10 +314,10 @@ function createJsonLd(id) {
     var allRequired = true; //variable gets false if an required field is empty
     var allInputs = $(":input");
 
-    inputFields.forEach(function(a){
-        var compareId=a.slice(0, a.indexOf("_"));
+    inputFields.forEach(function (a) {
+        var compareId = a.slice(0, a.indexOf("_"));
         if (compareId === id.toString()) { //only inputs from same panel
-            var value = $("#"+a).val();
+            var value = $("#" + a).val();
             var fullPath = a;
             fullPath = fullPath.replace(/\-/g, ".");
             fullPath = fullPath.replace(/ /g, "");

@@ -43,7 +43,7 @@
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css">
-        <script src="./javascript/instantAnnotations.js"></script>
+        <script defer src="./javascript/instantAnnotations.js"></script>
 
         <!-- throws error in console
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-history/1.9/jquery.history.min.js"></script>
@@ -52,22 +52,16 @@
     </head>
     <body>
 
+
+    <br/>
     <div class="container">
-        <!--
-        <div style="border: 3px solid rgb(201, 0, 1); overflow: hidden; margin: 15px auto; max-width: 500px;">
-            <iframe scrolling="no" src="https://semantify.it/login" style=" border: 0px none; margin-left: -10px; height:500px; margin-top: -212px; width: 500px;">
-            </iframe>
-        </div>
-        -->
         <h1>Instant Annotation Demo</h1>
         <div class="row">
-            <div id="IA_boxes">
-            </div>
+            <div class="IA_Box" data-dsid="59d8963100b7916b851f158d"></div>
+            <div class="IA_Box" data-dsid="59d8963100b7916b851f158d"></div>
+            <div class="IA_Box" data-dsid="591f28a05ad3c960c3fd14c6" data-btns="no"></div>
         </div>
-
     </div>
-
-    <script>IA_Create_Default("IA_boxes")</script>
 
     </body>
 
