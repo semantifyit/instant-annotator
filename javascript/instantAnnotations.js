@@ -109,6 +109,8 @@ function addBox(jqueryElement, myPanelId, dsId, buttons) {
 
     $('#loading'+myPanelId).hide();
 
+    var title = jqueryElement.data("title");
+
     var curDs;
     for (var i in allDs) {
         if (allDs.hasOwnProperty(i))
@@ -117,7 +119,7 @@ function addBox(jqueryElement, myPanelId, dsId, buttons) {
                 break;
             }
     }
-    var dsName = (curDs === undefined ? "DS not found" : curDs["schema:name"]);
+    var dsName = (title ? title : (curDs === undefined ? "DS not found" : curDs["schema:name"]));
     var dsType = curDs["dsv:class"][0]["schema:name"];
 
     var footer = (buttons && buttons.length > 0 ? '<div class="panel-footer text-center" id="panel-footer-' + myPanelId + '"></div>' : '');      //only display footer if there are some buttons
