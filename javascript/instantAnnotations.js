@@ -1,28 +1,39 @@
 var allDs;
 var classesJson;
 var classesReady = false;
-var DSReady = false;
 var panelId = 0;
+
+var usedDs = []; // hash: {ds}
 
 var panelDs = [];
 var panelRoots = [];
 var typeList = [];
 var inputFields = [];
-var outputJsonLd = {};
+
+var semantifyUrl = "https://staging.semantify.it";
 
 var copyBtn = {
     "name": "Copy",
     "onclick": function (jsonLd) {
         console.log("Copy");
-        console.log(jsonLd);
         if (jsonLd)
-            copyStr(jsonLd.toString());
+            copyStr(JSON.stringify(jsonLd, null, 2));
     }
 };
 var saveBtn = {
     "name": "Save",
     "onclick": function (jsonLd) {
         console.log("save");
+        if (jsonLd)
+        postJson(jsonLd, "", "SJFmMV5T-", function(data){
+        //postJson(jsonLd, "", "B1DtHSL6W", function(data){
+            if(data){
+                console.log('Saved annotation "' + data[0]["name"] + '" at: https://smtfy.it/' + data[0]["UID"]);
+            }
+            else{
+                console.log("Failed to save annotation");
+            }
+        });
     }
 };
 var previewBtn = {
@@ -53,17 +64,18 @@ var previewBtn = {
             '</div>' +
             '</div>'
         );
-        $('#preview_textArea').html(syntaxHighlight(JSON.stringify(JSON.parse(jsonLd), null, 2)));
+        $('#preview_textArea').html(syntaxHighlight(JSON.stringify(jsonLd, null, 2)));
         $('#myModal').modal();
     }
 };
 
-var defaultBtns = [copyBtn, previewBtn];
+var defaultBtns = [copyBtn, previewBtn, saveBtn];
 
-getData();
+getClassesJson();
 
 $('.IA_Box').each(function () {
-    var dsID = $(this).data("dsid");
+    var dsId = $(this).data("dsid");
+    var dsHash = $(this).data("dshash");
     var buttonsChoise = $(this).data("btns");
     var buttons;
     switch (buttonsChoise) {
@@ -77,32 +89,38 @@ $('.IA_Box').each(function () {
     }
     $(this).append(
         '<div id="loading' + panelId + '" class="col-lg-3 col-md-4 col-sm-6 text-center" style="margin: 10px; padding: 10px; background: white; border-radius: 10px;">'+
-        '<img src="https://semantify.it/images/loading.gif">'+
+        '<img src="'+semantifyUrl+'/images/loading.gif">'+
         '</div>'
     );
-    addBox($(this), panelId, dsID, buttons);
-    panelId++;
 
+    (function(id, jqueryElement){
+        if(dsHash !== null && dsHash !== undefined){
+            call(semantifyUrl+"/api/domainSpecification/hash/"+dsHash, function(ds){
+                addBox(jqueryElement, id, ds, buttons);
+            });
+        }
+        else if (dsId !== null && dsId !== undefined){
+            call(semantifyUrl+"/api/domainSpecification/"+dsId, function(ds){
+                addBox(jqueryElement, id, ds, buttons);
+            });
+        }
+    }(panelId, $(this)));
+
+    panelId++;
 });
 
-function getData() {
-    // https://semantify.it/assets/data/latest/classes.json // not yet deployed
-    call("https://semantify.it/assets/data/3.3/classes.json", function (data) {
+function getClassesJson() {
+    //call(semantifyUrl+"/assets/data/latest/classes.json", function (data) {
+    call("https://semantify.it/assets/data/3.2/classes.json", function (data) {
         classesJson = data;
         classesReady = true;
     });
-    call("https://semantify.it/api/domainSpecification", function (data) {
-        allDs = data;
-        DSReady = true;
-    });
 }
 
-
-function addBox(jqueryElement, myPanelId, dsId, buttons) {
-
-    if (!(classesReady && DSReady)) {
+function addBox(jqueryElement, myPanelId, ds, buttons) {
+    if (!(classesReady)) {
         setTimeout(function () {
-            addBox(jqueryElement, myPanelId, dsId, buttons);
+            addBox(jqueryElement, myPanelId, ds, buttons);
         }, 100);
         return;
     }
@@ -110,15 +128,7 @@ function addBox(jqueryElement, myPanelId, dsId, buttons) {
     $('#loading'+myPanelId).hide();
 
     var title = jqueryElement.data("title");
-
-    var curDs;
-    for (var i in allDs) {
-        if (allDs.hasOwnProperty(i))
-            if (allDs[i]["_id"] === dsId) {
-                curDs = allDs[i]["content"];
-                break;
-            }
-    }
+    var curDs = ds["content"];
     var dsName = (title ? title : (curDs === undefined ? "DS not found" : curDs["schema:name"]));
     var dsType = curDs["dsv:class"][0]["schema:name"];
 
@@ -137,7 +147,7 @@ function addBox(jqueryElement, myPanelId, dsId, buttons) {
     var dsProps = curDs["dsv:class"][0]["dsv:property"];
     var req_props = [];
     var opt_props = [];
-    var props = getProps(dsProps, "", dsType);
+    var props = getProps(dsProps, "", dsType, myPanelId);
 
     props.forEach(function (prop) {
         if (prop["isOptional"]) {
@@ -256,7 +266,7 @@ function strip(html) {
     return tmp.textContent || tmp.innerText || '';
 }
 
-function getProps(props, level, fatherType) {
+function getProps(props, level, fatherType, myPanelId) {
     var propList = [];
     for (var p in props) {
         if (!props.hasOwnProperty(p)) continue;
@@ -287,10 +297,10 @@ function getProps(props, level, fatherType) {
             var pathType = {
                 "name": prop['dsv:expectedType'][0]['schema:name'],
                 "path": path,
-                "panelId": panelId
+                "panelId": myPanelId
             };
             typeList.push(pathType);
-            propList = propList.concat(getProps(prop['dsv:expectedType'][0]["dsv:property"], (level === "" ? prop["schema:name"] : level + ": " + prop["schema:name"]), prop['dsv:expectedType'][0]["schema:name"]));
+            propList = propList.concat(getProps(prop['dsv:expectedType'][0]["dsv:property"], (level === "" ? prop["schema:name"] : level + ": " + prop["schema:name"]), prop['dsv:expectedType'][0]["schema:name"], myPanelId));
         }
     }
     return propList;
@@ -366,26 +376,14 @@ function createJsonLd(id) {
 
         var result = (JSON.stringify(resultJson));
         //console.log(result);
-        return result;
+        return resultJson;
     } else {
         send_snackbarMSG("Please fill in all required fields", 3000);
         return null;
     }
 }
 
-function call(url, callback) { //return data
-    $.ajax({
-        type: 'GET',
-        url: url,
-        dataType: 'json',
-        success: function (data) {
-            callback(data);
-        },
-        error: function () {
-            console.log('error');
-        }
-    });
-}
+
 
 function copyStr(str) {
     var dummy = document.createElement("input");
@@ -429,12 +427,23 @@ function send_snackbarMSG(message, duration) {
     $.snackbar(options);
 }
 
-function saveAnn() {
-    var url = "https://semantify.it/api/annotation/";
-    var apiKey = "ByYz_MJdb";
+function call(url, callback) {
+    $.ajax({
+        type: 'GET',
+        url: url,
+        dataType: 'json',
+        success: function (data) {
+            callback(data);
+        },
+        error: function () {
+            console.log('error');
+        }
+    });
+}
 
-    var annObj = {};
-    annObj["content"] = outputJsonLd;
+function postJson(json, dsId, apiKey, callback) {
+    var url = semantifyUrl+"/api/annotation/";
+    //url = "http://localhost:8081/api/annotation/";
 
     var options = {
         htmlAllowed: true,
@@ -444,22 +453,23 @@ function saveAnn() {
 
     var bulk = [];
     var toSend = {};
-    toSend["content"] = outputJsonLd;
-
+    toSend["content"] = json;
+    //toSend["domainSpecification"] = dsId;
     bulk.push(toSend);
 
     $.ajax({
         type: "POST",
-        dataType: 'json',
+        contentType: 'application/json',
         url: url + apiKey,
-        data: bulk,
+        data: JSON.stringify(bulk),
         success: function (data) {
             options['content'] = 'Saved annotation in semantify';
-            console.log(data);
+            callback(data);
             $.snackbar(options);
         },
         error: function () {
             options['content'] = 'Failed to save Annotation in semantify';
+            callback();
             $.snackbar(options);
         }
     });
