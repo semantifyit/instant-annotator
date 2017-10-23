@@ -8,25 +8,28 @@ var typeList = [];
 var inputFields = [];
 
 var semantifyUrl = "https://staging.semantify.it";
+//semantifyUrl = "http://localhost:8081";
+
+var saveApiKey = "B1DtHSL6W";
 
 var copyBtn = {
     "name": "Copy",
     "icon": "content_copy",
-    "onclick": function (jsonLd) {
+    "onclick": function (resp) {
         console.log("Copy");
-        if (jsonLd)
-            copyStr(JSON.stringify(jsonLd, null, 2));
+        if (resp.jsonLd)
+            copyStr(JSON.stringify(resp.jsonLd, null, 2));
     }
 };
 
 var clearBtn = {
     "name": "Clear",
     "icon": "delete",
-    "onclick": function (panelId) {
+    "onclick": function (resp) {
         console.log("Clear");
         inputFields.forEach(function (i) {
             var id = i.slice(0, i.indexOf("_"));
-            if (panelId.toString() === id) {
+            if (resp.panelId.toString() === id) {
                 $("#" + i).val("");
             }
         })
@@ -36,13 +39,52 @@ var clearBtn = {
 var saveBtn = {
     "name": "Save",
     "icon": "backup",
-    "onclick": function (jsonLd) {
+    "onclick": function (resp) {
         console.log("save");
-        if (jsonLd)
-            postJson(jsonLd, "", "SJFmMV5T-", function (data) {
-                //postJson(jsonLd, "", "B1DtHSL6W", function(data){
+        if (resp.jsonLd)
+            postJson(resp.jsonLd, "", saveApiKey, function (data) {
                 if (data) {
-                    console.log('Saved annotation "' + data[0]["name"] + '" at: https://smtfy.it/' + data[0]["UID"]);
+                    var annUrl = 'https://smtfy.it/' + data[0]["UID"];
+                    var dummy = document.createElement("div");
+                    document.body.appendChild(dummy);
+                    dummy.setAttribute("id", "preview_id");
+                    $('#preview_id').append(
+                        '<div class="modal fade" id="saveModal" role="dialog">' +
+                        '<div class="modal-dialog">' +
+                        '<div class="modal-content">' +
+                        '<div class="modal-header">' +
+                        '<button type="button" class="close" data-dismiss="modal">&times;</button>' +
+                        '<h4 class="modal-title">Saved Annotation</h4>' +
+                        '</div>' +
+                        '<div class="modal-body">' +
+                        '<p>Saved annotation "' + data[0]["name"] + '" at: <a href="'+annUrl+'">'+annUrl+'</a></p>' +
+                        '<a href="https://github.com/semantifyit/semantify-injection-js-sample">How do i get this annotation into my website?</a> <br/><br/><br/>'+
+                        '<p>Want to save this Annotation to your Semantify.it account?</p>'+
+                        '<button type="button" class="btn button-sti-red" id="loginBtn">Login</button>'+
+                        '<div id="logginSection" hidden>' +
+                        '<input type="text" class="form-control" id="username" placeholder="Username/Email" title="Username/Email">'+
+                        '<input type="password" class="form-control" id="password" placeholder="Password" title="Password">'+
+                        '</div>'+
+                        '</div>' +
+                        '<div class="modal-footer">' +
+                        '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>'
+                    );
+                    $('#preview_textArea').html(syntaxHighlight(JSON.stringify(resp.jsonLd, null, 2)));
+                    $('#saveModal').modal();
+                    $('#loginBtn').click(function(){
+                        if($(this).css('display') === 'none'){
+                            $('#logginSection').slideDown(100);
+                        }
+                        else{
+
+                        }
+                    });
+
+                    //console.log('Saved annotation "' + data[0]["name"] + '" at: https://smtfy.it/' + data[0]["UID"]);
                 }
                 else {
                     console.log("Failed to save annotation");
@@ -53,8 +95,8 @@ var saveBtn = {
 var previewBtn = {
     "name": "Preview",
     "icon": "code",
-    "onclick": function (jsonLd) {
-        if (jsonLd === null) {
+    "onclick": function (resp) {
+        if (resp.jsonLd === null) {
             return;
         }
         console.log("preview");
@@ -62,7 +104,7 @@ var previewBtn = {
         document.body.appendChild(dummy);
         dummy.setAttribute("id", "preview_id");
         $('#preview_id').append(
-            '<div class="modal fade" id="myModal" role="dialog">' +
+            '<div class="modal fade" id="previewModal" role="dialog">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
             '<div class="modal-header">' +
@@ -79,18 +121,19 @@ var previewBtn = {
             '</div>' +
             '</div>'
         );
-        $('#preview_textArea').html(syntaxHighlight(JSON.stringify(jsonLd, null, 2)));
-        $('#myModal').modal();
+        $('#preview_textArea').html(syntaxHighlight(JSON.stringify(resp.jsonLd, null, 2)));
+        $('#previewModal').modal();
     }
 };
 
-var defaultBtns = [copyBtn, previewBtn, saveBtn, clearBtn];
+var defaultBtns = [clearBtn, copyBtn, previewBtn, saveBtn];
 
 getClassesJson();
 
 $('.IA_Box').each(function () {
     var dsId = $(this).data("dsid");
     var dsHash = $(this).data("dshash");
+    var dsName = $(this).data("dsname");
     var buttonsChoise = $(this).data("btns");
     var buttons;
     switch (buttonsChoise) {
@@ -109,14 +152,19 @@ $('.IA_Box').each(function () {
     );
 
     (function (id, jqueryElement) {
-        if (dsHash !== null && dsHash !== undefined) {
+        if (dsId) {
+            call(semantifyUrl + "/api/domainSpecification/" + dsId, function (ds) {
+                addBox(jqueryElement, id, ds, buttons);
+            });
+        }
+        else if (dsHash) {
             call(semantifyUrl + "/api/domainSpecification/hash/" + dsHash, function (ds) {
                 addBox(jqueryElement, id, ds, buttons);
             });
         }
-        else if (dsId !== null && dsId !== undefined) {
-            call(semantifyUrl + "/api/domainSpecification/" + dsId, function (ds) {
-                addBox(jqueryElement, id, ds, buttons);
+        else if (dsName) {
+            call(semantifyUrl + "/api/domainSpecification/searchName/" + dsName, function (dsList) {
+                addBox(jqueryElement, id, dsList[0], buttons);
             });
         }
     }(panelId, $(this)));
@@ -141,7 +189,6 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
     }
 
     $('#loading' + myPanelId).hide();
-
     var title = jqueryElement.data("title");
     var curDs = ds["content"];
     var dsName = (title ? title : (curDs === undefined ? "DS not found" : curDs["schema:name"]));
@@ -161,7 +208,7 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
         "panelId": myPanelId,
         "name": curDs["schema:name"],
         "root": curDs["dsv:class"][0]["schema:name"]
-    }
+    };
 
     panelRoots.push(t);
     var dsProps = curDs["dsv:class"][0]["dsv:property"];
@@ -222,17 +269,16 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
                     '</button>'
                 );
 
-                if (name === "Clear") {
-                    $('#panel-footer-btn-' + name + '-' + myPanelId)
-                        .click(function () {
-                            onclick(myPanelId);
+                $('#panel-footer-btn-' + name + '-' + myPanelId)
+                    .click(function () {
+                        onclick({
+                            "jsonLd" : createJsonLd(arg),
+                            "jsonWarning" : "",
+                            "dsID" : "",
+                            "panelId": arg
                         });
-                } else {
-                    $('#panel-footer-btn-' + name + '-' + myPanelId)
-                        .click(function () {
-                            onclick(createJsonLd(arg));
-                        });
-                }
+                    });
+
             })(myPanelId);
         }
     }
