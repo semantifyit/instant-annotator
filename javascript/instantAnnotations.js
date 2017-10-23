@@ -10,7 +10,8 @@ var inputFields = [];
 var semantifyUrl = "https://staging.semantify.it";
 //semantifyUrl = "http://localhost:8081";
 
-var saveApiKey = "B1DtHSL6W";
+var saveApiKey = "B1Oia2oT-";
+var semantifyToken;
 
 var copyBtn = {
     "name": "Copy",
@@ -41,55 +42,115 @@ var saveBtn = {
     "icon": "backup",
     "onclick": function (resp) {
         console.log("save");
-        if (resp.jsonLd)
-            postJson(resp.jsonLd, "", saveApiKey, function (data) {
-                if (data) {
-                    var annUrl = 'https://smtfy.it/' + data[0]["UID"];
-                    var dummy = document.createElement("div");
-                    document.body.appendChild(dummy);
-                    dummy.setAttribute("id", "preview_id");
-                    $('#preview_id').append(
-                        '<div class="modal fade" id="saveModal" role="dialog">' +
-                        '<div class="modal-dialog">' +
-                        '<div class="modal-content">' +
-                        '<div class="modal-header">' +
-                        '<button type="button" class="close" data-dismiss="modal">&times;</button>' +
-                        '<h4 class="modal-title">Saved Annotation</h4>' +
-                        '</div>' +
-                        '<div class="modal-body">' +
-                        '<p>Saved annotation "' + data[0]["name"] + '" at: <a href="'+annUrl+'">'+annUrl+'</a></p>' +
-                        '<a href="https://github.com/semantifyit/semantify-injection-js-sample">How do i get this annotation into my website?</a> <br/><br/><br/>'+
-                        '<p>Want to save this Annotation to your Semantify.it account?</p>'+
-                        '<button type="button" class="btn button-sti-red" id="loginBtn">Login</button>'+
-                        '<div id="logginSection" hidden>' +
-                        '<input type="text" class="form-control" id="username" placeholder="Username/Email" title="Username/Email">'+
-                        '<input type="password" class="form-control" id="password" placeholder="Password" title="Password">'+
-                        '</div>'+
-                        '</div>' +
-                        '<div class="modal-footer">' +
-                        '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>' +
-                        '</div>' +
-                        '</div>' +
-                        '</div>' +
-                        '</div>'
-                    );
-                    $('#preview_textArea').html(syntaxHighlight(JSON.stringify(resp.jsonLd, null, 2)));
-                    $('#saveModal').modal();
-                    $('#loginBtn').click(function(){
-                        if($(this).css('display') === 'none'){
-                            $('#logginSection').slideDown(100);
-                        }
-                        else{
+        if (!resp.jsonLd)
+            return;
 
-                        }
-                    });
+        var bulk = [];
+        var toSend = {};
+        toSend["content"] = resp.jsonLd;
+        //toSend["domainSpecification"] = dsId;
+        bulk.push(toSend);
 
-                    //console.log('Saved annotation "' + data[0]["name"] + '" at: https://smtfy.it/' + data[0]["UID"]);
-                }
-                else {
-                    console.log("Failed to save annotation");
-                }
-            });
+        var snackBarOptions = {
+            htmlAllowed: true,
+            style: 'toast',
+            timeout: 3000
+        };
+
+        httpPostJson(semantifyUrl + "/api/annotation/" + saveApiKey, bulk, function (saveRes) {
+            if (saveRes) {
+                snackBarOptions["content"] = "Successfully saved Annotation to semantify.it";
+                $.snackbar(snackBarOptions);
+
+                var annUrl = 'https://smtfy.it/' + saveRes[0]["UID"];
+                var dummy = document.createElement("div");
+                document.body.appendChild(dummy);
+                dummy.setAttribute("id", "preview_id");
+                $('#preview_id').append(
+                    '<div class="modal fade" id="saveModal" role="dialog">' +
+                    '<div class="modal-dialog">' +
+                    '<div class="modal-content">' +
+                    '<div class="modal-header">' +
+                    '<button type="button" class="close" data-dismiss="modal">&times;</button>' +
+                    '<h4 class="modal-title">Saved Annotation</h4>' +
+                    '</div>' +
+                    '<div class="modal-body">' +
+                    'Saved annotation "' + saveRes[0]["name"] + '" <div id="toWebsite" style="display: inline"></div> at: <a id="annUrl" href="' + annUrl + '">' + annUrl + '</a> <br/><br/>' +
+                    '<a href="https://github.com/semantifyit/semantify-injection-js-sample">How do i get this annotation into my website?</a> <br/><br/><br/>' +
+                    '<div id="loginSection">' +
+                    '<p>Want to save this Annotation to your Semantify.it account?</p>' +
+                    '<button type="button" class="btn button-sti-red" id="loginBtn">Login</button>' +
+                    '<div id="credentialsSection" hidden>' +
+                    '<input type="text" class="form-control" id="semantify_username" placeholder="Username/Email" title="Username/Email">' +
+                    '<input type="password" class="form-control" id="semantify_password" placeholder="Password" title="Password">' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="modal-footer">' +
+                    '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>'
+                );
+                $('#saveModal').modal();
+                $('#loginBtn').click(function () {
+                    if ($('#credentialsSection').css('display') === 'none') {
+                        $('#credentialsSection').slideDown(100);
+                    }
+                    else {
+                        var credentials = {
+                            identifier: $('#semantify_username').val(),
+                            password: $('#semantify_password').val()
+                        };
+
+                        httpPostJson(semantifyUrl + "/api/login" , credentials, function (loginResp) {
+                            if(loginResp){
+                                $('#loginSection').slideUp(100);
+                                semantifyToken = loginResp["token"];
+                                httpGetHeaders(semantifyUrl + "/api/website", {'Authorization': 'Bearer ' + semantifyToken}, function(websiteRes){
+                                    if(websiteRes){
+                                        $('#loginSection').after('<div class="list-group" id="my_websites"><h4>Your websites: (Select one to save your annotation to) </h4> </div>');
+                                        websiteRes.forEach(function(ele){
+                                            $('#my_websites').append('<button type="button" class="list-group-item list-group-item-action" id="' + ele["apiKey"]  + '" style="padding: 5px 0">' + ele["name"] + ' (' + ele["domain"] + ')' + '</button>');
+                                            $('#'+ele["apiKey"]).click(function(){
+                                                $('#my_websites').slideUp(100);
+                                                httpPostJson(semantifyUrl + "/api/annotation/" + ele["apiKey"], bulk, function (newSaveRes) {
+                                                    if (newSaveRes) {
+                                                        snackBarOptions["content"] = 'Saved the annotation to: ' + ele["name"] + ' (' + ele["domain"] + ')';
+                                                        $.snackbar(snackBarOptions);
+                                                        $('#toWebsite').append('to website ' + ele["name"] + ' (' + ele["domain"] + ')');
+                                                        var newUrl = 'https://smtfy.it/' + newSaveRes[0]["UID"];
+                                                        $('#annUrl').html(newUrl).attr("href", newUrl)
+                                                    }
+                                                    else{
+                                                        snackBarOptions["content"] = 'Failed to save the annotation to: ' + ele["name"] + ' (' + ele["domain"] + ')';
+                                                        $.snackbar(snackBarOptions);
+                                                    }
+                                                });
+
+                                            });
+                                        });
+                                    }
+                                    else{
+                                        snackBarOptions["content"] = "There has been an error when retrieving your websites";
+                                        $.snackbar(snackBarOptions);
+                                    }
+                                });
+                            }
+                            else{
+                                snackBarOptions["content"] = "Couldn't log in to semantify.it";
+                                $.snackbar(snackBarOptions);
+                            }
+                        });
+                    }
+                });
+            }
+            else {
+                snackBarOptions["content"] = "Successfully saved Annotation to semantify.it";
+                $.snackbar(snackBarOptions);
+            }
+        });
     }
 };
 var previewBtn = {
@@ -153,17 +214,17 @@ $('.IA_Box').each(function () {
 
     (function (id, jqueryElement) {
         if (dsId) {
-            call(semantifyUrl + "/api/domainSpecification/" + dsId, function (ds) {
+            httpGet(semantifyUrl + "/api/domainSpecification/" + dsId, function (ds) {
                 addBox(jqueryElement, id, ds, buttons);
             });
         }
         else if (dsHash) {
-            call(semantifyUrl + "/api/domainSpecification/hash/" + dsHash, function (ds) {
+            httpGet(semantifyUrl + "/api/domainSpecification/hash/" + dsHash, function (ds) {
                 addBox(jqueryElement, id, ds, buttons);
             });
         }
         else if (dsName) {
-            call(semantifyUrl + "/api/domainSpecification/searchName/" + dsName, function (dsList) {
+            httpGet(semantifyUrl + "/api/domainSpecification/searchName/" + dsName, function (dsList) {
                 addBox(jqueryElement, id, dsList[0], buttons);
             });
         }
@@ -173,8 +234,8 @@ $('.IA_Box').each(function () {
 });
 
 function getClassesJson() {
-    //call(semantifyUrl+"/assets/data/latest/classes.json", function (data) {
-    call("https://semantify.it/assets/data/3.2/classes.json", function (data) {
+    //httpGet(semantifyUrl+"/assets/data/latest/classes.json", function (data) {
+    httpGet("https://semantify.it/assets/data/3.2/classes.json", function (data) {
         classesJson = data;
         classesReady = true;
     });
@@ -272,9 +333,9 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
                 $('#panel-footer-btn-' + name + '-' + myPanelId)
                     .click(function () {
                         onclick({
-                            "jsonLd" : createJsonLd(arg),
-                            "jsonWarning" : "",
-                            "dsID" : "",
+                            "jsonLd": createJsonLd(arg),
+                            "jsonWarning": "",
+                            "dsID": "",
                             "panelId": arg
                         });
                     });
@@ -447,7 +508,7 @@ function createJsonLd(id) {
     var allRequired = true; //variable gets false if an required field is empty
     var allRequiredPaths = true; //variable gets false if an optional field is filled in that has required properties
     var allInputs = []; //all input ids from same panel
-    var msgs=[];
+    var msgs = [];
 
     inputFields.forEach(function (a) {
         var compareId = a.slice(0, a.indexOf("_"));
@@ -460,7 +521,7 @@ function createJsonLd(id) {
         var value = $("#" + a).val();
         var path = a.replace(/\-/g, ".").replace(/ /g, "").split('_');
         var optional = path[3];
-        var rootOptional = path[4]
+        var rootOptional = path[4];
         path = path[2];
         if ((value === undefined || value === null || value === "") && (optional === "false" && rootOptional === "false")) { //if variable is not optional but empty
             allRequired = false;
@@ -486,7 +547,7 @@ function createJsonLd(id) {
                     len2 = len2.length;
                     if (bOptional == "false" && bRootOptional == "true" && (bPath.indexOf(bAllPaths[z]) >= 0) && len === len2 + 1) {
                         if (bValue === undefined || bValue === "" || bValue == null) {
-                            msgs.push(bPath.replace(".",":"));
+                            msgs.push(bPath.replace(".", ":"));
                             allRequiredPaths = false;
                         }
                     }
@@ -530,9 +591,9 @@ function createJsonLd(id) {
         if (!allRequired) {
             send_snackbarMSG("Please fill in all required fields", 3000);
         } else {
-          msgs=unique(msgs)
-          msgs.length
-          send_snackbarMSG("Please also fill in " + msgs.join(", "), 3000+(msgs.length-1)*1000);
+            msgs = unique(msgs);
+            //msgs.length
+            send_snackbarMSG("Please also fill in " + msgs.join(", "), 3000 + (msgs.length - 1) * 1000);
         }
         return null;
     }
@@ -570,11 +631,11 @@ function syntaxHighlight(json) {
 }
 
 function unique(list) {
-  var result = [];
-  $.each(list, function(i, e) {
-    if ($.inArray(e, result) == -1) result.push(e);
-  });
-  return result;
+    var result = [];
+    $.each(list, function (i, e) {
+        if ($.inArray(e, result) == -1) result.push(e);
+    });
+    return result;
 }
 
 function send_snackbarMSG(message, duration) {
@@ -589,54 +650,6 @@ function send_snackbarMSG(message, duration) {
     $.snackbar(options);
 }
 
-function call(url, callback) {
-    $.ajax({
-        type: 'GET',
-        url: url,
-        dataType: 'json',
-        success: function (data) {
-            callback(data);
-        },
-        error: function () {
-            console.log('error');
-        }
-    });
-}
-
-function postJson(json, dsId, apiKey, callback) {
-    var url = semantifyUrl + "/api/annotation/";
-    //url = "http://localhost:8081/api/annotation/";
-
-    var options = {
-        htmlAllowed: true,
-        style: 'toast',
-        timeout: 3000
-    };
-
-    var bulk = [];
-    var toSend = {};
-    toSend["content"] = json;
-    //toSend["domainSpecification"] = dsId;
-    bulk.push(toSend);
-
-    $.ajax({
-        type: "POST",
-        contentType: 'application/json',
-        url: url + apiKey,
-        data: JSON.stringify(bulk),
-        success: function (data) {
-            options['content'] = 'Saved annotation in semantify';
-            callback(data);
-            $.snackbar(options);
-        },
-        error: function () {
-            options['content'] = 'Failed to save Annotation in semantify';
-            callback();
-            $.snackbar(options);
-        }
-    });
-}
-
 function set(obj, path, value) {
     var schema = obj;
     var pList = path.split('.');
@@ -649,3 +662,37 @@ function set(obj, path, value) {
     schema[pList[len - 1]] = value;
     return obj;
 }
+
+function httpGet(url, callback) {
+    httpGetHeaders(url, null, callback);
+}
+
+function httpGetHeaders(url, headers, callback){
+    $.ajax({
+        type: 'GET',
+        url: url,
+        headers: headers,
+        success: function (data) {
+            callback(data);
+        },
+        error: function () {
+            callback();
+        }
+    });
+}
+
+function httpPostJson(url, json, callback) {
+    $.ajax({
+        type: "POST",
+        contentType: 'application/json ; charset=utf-8',
+        url: url,
+        data: JSON.stringify(json),
+        success: function (data) {
+            callback(data);
+        },
+        error: function () {
+            callback();
+        }
+    });
+}
+
