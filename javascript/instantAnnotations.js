@@ -215,7 +215,7 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
       temp=true;
       var p=name.split(":");
       p.pop();
-      var t= "THIS IS A REQUIRED FIELD FOR THE PATH "+p.concat()+" \n\n"+desc;
+      var t= "THIS IS A REQUIRED FIELD FOR THE PATH *"+p.concat()+"*. IF YOU FILL THIS FIELD, PLEASE ALSO FILL IN ALL REQUIRED FIELDS FOR THE SAME PATH AND ALL PATH'S BELOW \n\n"+desc;
       desc=t;
     }
     switch (type) {
@@ -365,22 +365,50 @@ function createJsonLd(id) {
             }
     }
     var allRequired = true; //variable gets false if an required field is empty
-    var allInputs = $(":input");
+    var allRequiredPaths = true;
+    var allInputs=[];
 
     inputFields.forEach(function (a) {
         var compareId = a.slice(0, a.indexOf("_"));
         if (compareId === id.toString()) { //only inputs from same panel
+            allInputs.push(a);
+          }});
+          allInputs.forEach(function(a){
             var value = $("#" + a).val();
-            var fullPath = a;
-            fullPath = fullPath.replace(/\-/g, ".");
-            fullPath = fullPath.replace(/ /g, "");
-            var path = fullPath.split('_');
+            var path = a.replace(/\-/g, ".").replace(/ /g, "").split('_');
             var optional = path[3];
             var rootOptional=path[4]
             path = path[2];
             if ((value === undefined || value === null || value === "") && (optional === "false" && rootOptional==="false")) {
                 allRequired = false;
 
+            }
+            if((value != undefined && value != null && value != "") && rootOptional==="true"){
+              //check if all other paths and sub paths are filled in - else false allRequiredPaths
+              var bAllPaths=[];
+              var bPaths=path.split('.');
+              while(bPaths.length>1){
+                bPaths.pop();
+                bAllPaths.push((bPaths.join(".")))
+              }
+              allInputs.forEach(function(b){
+                var bPath = b.replace(/\-/g, ".").replace(/ /g, "").split('_');
+                var bOptional = bPath[3];
+                var bRootOptional=bPath[4]
+                bPath = bPath[2];
+                var len=(bPath.split("."));
+                len=len.length;
+                var bValue = $("#" + b).val();
+                for(var z=0; z<bAllPaths.length; z++){
+                  var len2=bAllPaths[z].split(".");
+                  len2=len2.length;
+                  if(bOptional=="false" && bRootOptional=="true" && (bPath.indexOf(bAllPaths[z])>=0) && len === len2+1){
+                    if(bValue===undefined || bValue==="" || bValue==null){
+                      allRequiredPaths=false;
+                    }
+                  }
+                }
+              });
             }
             typeList.forEach(function (t) {
                 if (t["panelId"] === id) {
@@ -410,18 +438,17 @@ function createJsonLd(id) {
 
                 resultJson = set(resultJson, path, value)
             }
-        }
 
     });
-    if (allRequired) {
-        //console.log(allPaths.length);
-        //console.log(validPaths.length);
-
+    if (allRequired && allRequiredPaths) {
         var result = (JSON.stringify(resultJson));
-        //console.log(result);
         return resultJson;
     } else {
-        send_snackbarMSG("Please fill in all required fields", 3000);
+        if(!allRequired){
+          send_snackbarMSG("Please fill in all required fields", 3000);
+        }else{
+          send_snackbarMSG("Please fill in all required red fields", 3000);
+        }
         return null;
     }
 }
