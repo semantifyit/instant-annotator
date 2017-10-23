@@ -5,7 +5,6 @@ var panelId = 0;
 
 var usedDs = []; // hash: {ds}
 
-var panelDs = [];
 var panelRoots = [];
 var typeList = [];
 var inputFields = [];
@@ -156,8 +155,13 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
         '</div>' +
         footer +
         '</div>');
-    panelDs.push(curDs["schema:name"]);
-    panelRoots.push(curDs["dsv:class"][0]["schema:name"]);
+    var t={
+      "panelId":myPanelId,
+      "name":curDs["schema:name"],
+      "root":curDs["dsv:class"][0]["schema:name"]
+    }
+
+    panelRoots.push(t);
     var dsProps = curDs["dsv:class"][0]["dsv:property"];
     var req_props = [];
     var opt_props = [];
@@ -376,8 +380,14 @@ function getProps(props, level, fatherType, myPanelId,fatherIsOptional) {
 }
 
 function createJsonLd(id) {
-    var dsName = panelDs[id];
-    var schemaName = panelRoots[id];
+    var dsName;
+    var schemaName;
+    panelRoots.forEach(function(t){
+      if(t["panelId"]==id){
+        dsName=t["name"];
+        schemaName=t["root"]
+      }
+    })
     var jsonDs;
     var validPaths = [];
     var allPaths = [];
