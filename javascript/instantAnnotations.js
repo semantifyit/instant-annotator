@@ -20,6 +20,20 @@ var copyBtn = {
             copyStr(JSON.stringify(jsonLd, null, 2));
     }
 };
+
+var clearBtn = {
+    "name": "Clear",
+    "onclick": function (panelId) {
+        console.log("Clear");
+        inputFields.forEach(function(i){
+          var id = i.slice(0, i.indexOf("_"));
+            if(panelId.toString()===id){
+              $("#"+i).val("");
+            }
+        })
+    }
+};
+
 var saveBtn = {
     "name": "Save",
     "onclick": function (jsonLd) {
@@ -69,7 +83,7 @@ var previewBtn = {
     }
 };
 
-var defaultBtns = [copyBtn, previewBtn, saveBtn];
+var defaultBtns = [copyBtn, previewBtn, saveBtn,clearBtn];
 
 getClassesJson();
 
@@ -194,13 +208,27 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
                 var name = buttons[j]["name"];
                 var onclick = buttons[j]["onclick"];
                 var additionalClasses = buttons[j]["additionalClasses"];
+                var icon;
+                switch(name){
+                  case "Clear": icon="delete"; break;
+                  case "Copy": icon="content_copy"; break;
+                  case "Preview": icon="code"; break;
+                  case "Save": icon="backup"; break;
+                }
 
                 $('#panel-footer-' + myPanelId)
-                    .append('<button class="btn button-sti-red" id="panel-footer-btn-' + name + '-' + myPanelId + '" style="margin: 0 5px" ' + additionalClasses + '>' + name + '</button>');
-                $('#panel-footer-btn-' + name + '-' + myPanelId)
-                    .click(function () {
-                        onclick(createJsonLd(arg));
+                    .append('<button class="btn button-sti-red" id="panel-footer-btn-' + name + '-' + myPanelId + '" style="margin: 0 5px" ' + additionalClasses + ' title="'+name+'" ><i class="material-icons">'+icon+'</i></button>');
+                if(name==="Clear"){
+                  $('#panel-footer-btn-' + name + '-' + myPanelId)
+                      .click(function () {
+                          onclick(myPanelId);
                     });
+                }else{
+                  $('#panel-footer-btn-' + name + '-' + myPanelId)
+                      .click(function () {
+                          onclick(createJsonLd(arg));
+                    });
+                  }
             })(myPanelId);
         }
     }
@@ -365,23 +393,23 @@ function createJsonLd(id) {
             }
     }
     var allRequired = true; //variable gets false if an required field is empty
-    var allRequiredPaths = true;
-    var allInputs=[];
+    var allRequiredPaths = true; //variable gets false if an optional field is filled in that has required properties
+    var allInputs=[]; //all input ids from same panel
 
     inputFields.forEach(function (a) {
         var compareId = a.slice(0, a.indexOf("_"));
         if (compareId === id.toString()) { //only inputs from same panel
             allInputs.push(a);
           }});
+
           allInputs.forEach(function(a){
             var value = $("#" + a).val();
             var path = a.replace(/\-/g, ".").replace(/ /g, "").split('_');
             var optional = path[3];
             var rootOptional=path[4]
             path = path[2];
-            if ((value === undefined || value === null || value === "") && (optional === "false" && rootOptional==="false")) {
+            if ((value === undefined || value === null || value === "") && (optional === "false" && rootOptional==="false")) { //if variable is not optional but empty
                 allRequired = false;
-
             }
             if((value != undefined && value != null && value != "") && rootOptional==="true"){
               //check if all other paths and sub paths are filled in - else false allRequiredPaths
