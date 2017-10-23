@@ -3,8 +3,6 @@ var classesJson;
 var classesReady = false;
 var panelId = 0;
 
-var usedDs = []; // hash: {ds}
-
 var panelRoots = [];
 var typeList = [];
 var inputFields = [];
@@ -13,6 +11,7 @@ var semantifyUrl = "https://staging.semantify.it";
 
 var copyBtn = {
     "name": "Copy",
+    "icon": "content_copy",
     "onclick": function (jsonLd) {
         console.log("Copy");
         if (jsonLd)
@@ -22,12 +21,13 @@ var copyBtn = {
 
 var clearBtn = {
     "name": "Clear",
+    "icon": "delete",
     "onclick": function (panelId) {
         console.log("Clear");
-        inputFields.forEach(function(i){
-          var id = i.slice(0, i.indexOf("_"));
-            if(panelId.toString()===id){
-              $("#"+i).val("");
+        inputFields.forEach(function (i) {
+            var id = i.slice(0, i.indexOf("_"));
+            if (panelId.toString() === id) {
+                $("#" + i).val("");
             }
         })
     }
@@ -35,22 +35,24 @@ var clearBtn = {
 
 var saveBtn = {
     "name": "Save",
+    "icon": "backup",
     "onclick": function (jsonLd) {
         console.log("save");
         if (jsonLd)
-        postJson(jsonLd, "", "SJFmMV5T-", function(data){
-        //postJson(jsonLd, "", "B1DtHSL6W", function(data){
-            if(data){
-                console.log('Saved annotation "' + data[0]["name"] + '" at: https://smtfy.it/' + data[0]["UID"]);
-            }
-            else{
-                console.log("Failed to save annotation");
-            }
-        });
+            postJson(jsonLd, "", "SJFmMV5T-", function (data) {
+                //postJson(jsonLd, "", "B1DtHSL6W", function(data){
+                if (data) {
+                    console.log('Saved annotation "' + data[0]["name"] + '" at: https://smtfy.it/' + data[0]["UID"]);
+                }
+                else {
+                    console.log("Failed to save annotation");
+                }
+            });
     }
 };
 var previewBtn = {
     "name": "Preview",
+    "icon": "code",
     "onclick": function (jsonLd) {
         if (jsonLd === null) {
             return;
@@ -82,7 +84,7 @@ var previewBtn = {
     }
 };
 
-var defaultBtns = [copyBtn, previewBtn, saveBtn,clearBtn];
+var defaultBtns = [copyBtn, previewBtn, saveBtn, clearBtn];
 
 getClassesJson();
 
@@ -101,19 +103,19 @@ $('.IA_Box').each(function () {
             buttons = defaultBtns;
     }
     $(this).append(
-        '<div id="loading' + panelId + '" class="col-lg-3 col-md-4 col-sm-6 text-center" style="margin: 10px; padding: 10px; background: white; border-radius: 10px;">'+
-        '<img src="'+semantifyUrl+'/images/loading.gif">'+
+        '<div id="loading' + panelId + '" class="col-lg-3 col-md-4 col-sm-6 text-center" style="margin: 10px; padding: 10px; background: white; border-radius: 10px;">' +
+        '<img src="' + semantifyUrl + '/images/loading.gif">' +
         '</div>'
     );
 
-    (function(id, jqueryElement){
-        if(dsHash !== null && dsHash !== undefined){
-            call(semantifyUrl+"/api/domainSpecification/hash/"+dsHash, function(ds){
+    (function (id, jqueryElement) {
+        if (dsHash !== null && dsHash !== undefined) {
+            call(semantifyUrl + "/api/domainSpecification/hash/" + dsHash, function (ds) {
                 addBox(jqueryElement, id, ds, buttons);
             });
         }
-        else if (dsId !== null && dsId !== undefined){
-            call(semantifyUrl+"/api/domainSpecification/"+dsId, function(ds){
+        else if (dsId !== null && dsId !== undefined) {
+            call(semantifyUrl + "/api/domainSpecification/" + dsId, function (ds) {
                 addBox(jqueryElement, id, ds, buttons);
             });
         }
@@ -138,7 +140,7 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
         return;
     }
 
-    $('#loading'+myPanelId).hide();
+    $('#loading' + myPanelId).hide();
 
     var title = jqueryElement.data("title");
     var curDs = ds["content"];
@@ -155,17 +157,17 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
         '</div>' +
         footer +
         '</div>');
-    var t={
-      "panelId":myPanelId,
-      "name":curDs["schema:name"],
-      "root":curDs["dsv:class"][0]["schema:name"]
+    var t = {
+        "panelId": myPanelId,
+        "name": curDs["schema:name"],
+        "root": curDs["dsv:class"][0]["schema:name"]
     }
 
     panelRoots.push(t);
     var dsProps = curDs["dsv:class"][0]["dsv:property"];
     var req_props = [];
     var opt_props = [];
-    var props = getProps(dsProps, "", dsType, myPanelId,false);
+    var props = getProps(dsProps, "", dsType, myPanelId, false);
 
     props.forEach(function (prop) {
         if (!prop["isOptional"] && !prop["rootIsOptional"]) {
@@ -177,7 +179,7 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
     });
 
     req_props.forEach(function (p) {
-        insertInputField(myPanelId, p["name"], getDesc(p["fatherType"], p["simpleName"]), p["type"], p["enums"], "#panel-body-", p["isOptional"],p["rootIsOptional"])
+        insertInputField(myPanelId, p["name"], getDesc(p["fatherType"], p["simpleName"]), p["type"], p["enums"], "#panel-body-", p["isOptional"], p["rootIsOptional"])
     });
 
     if (opt_props.length > 0) {
@@ -199,7 +201,7 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
         })(myPanelId);
 
         opt_props.forEach(function (p) {
-            insertInputField(myPanelId, p["name"], getDesc(p["fatherType"], p["simpleName"]), p["type"], p["enums"], "#panel-body-opt-", p["isOptional"],p["rootIsOptional"])
+            insertInputField(myPanelId, p["name"], getDesc(p["fatherType"], p["simpleName"]), p["type"], p["enums"], "#panel-body-opt-", p["isOptional"], p["rootIsOptional"])
         });
 
         $('#panel-body-opt-' + myPanelId).slideUp(0);
@@ -212,103 +214,101 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
                 var name = buttons[j]["name"];
                 var onclick = buttons[j]["onclick"];
                 var additionalClasses = buttons[j]["additionalClasses"];
-                var icon;
-                switch(name){
-                  case "Clear": icon="delete"; break;
-                  case "Copy": icon="content_copy"; break;
-                  case "Preview": icon="code"; break;
-                  case "Save": icon="backup"; break;
-                }
+                var icon = buttons[j].hasOwnProperty("icon") ? buttons[j]["icon"] : null;
 
-                $('#panel-footer-' + myPanelId)
-                    .append('<button class="btn button-sti-red" id="panel-footer-btn-' + name + '-' + myPanelId + '" style="margin: 0 5px" ' + additionalClasses + ' title="'+name+'" ><i class="material-icons">'+icon+'</i></button>');
-                if(name==="Clear"){
-                  $('#panel-footer-btn-' + name + '-' + myPanelId)
-                      .click(function () {
-                          onclick(myPanelId);
-                    });
-                }else{
-                  $('#panel-footer-btn-' + name + '-' + myPanelId)
-                      .click(function () {
-                          onclick(createJsonLd(arg));
-                    });
-                  }
+                $('#panel-footer-' + myPanelId).append(
+                    '<button class="btn button-sti-red" id="panel-footer-btn-' + name + '-' + myPanelId + '" style="margin: 5px 5px; padding: 10px 10px" ' + (additionalClasses ? additionalClasses : "") + ' title="' + name + '" >' +
+                    (icon ? '<i class="material-icons">' + icon + '</i>' : name) +
+                    '</button>'
+                );
+
+                if (name === "Clear") {
+                    $('#panel-footer-btn-' + name + '-' + myPanelId)
+                        .click(function () {
+                            onclick(myPanelId);
+                        });
+                } else {
+                    $('#panel-footer-btn-' + name + '-' + myPanelId)
+                        .click(function () {
+                            onclick(createJsonLd(arg));
+                        });
+                }
             })(myPanelId);
         }
     }
 }
 
 
-function insertInputField(panelId, name, desc, type, enumerations, panel, optional,rootIsOptional) {
+function insertInputField(panelId, name, desc, type, enumerations, panel, optional, rootIsOptional) {
     var id = panelId + "_" + type + "_" + name + "_" + optional + "_" + rootIsOptional;
     id = id.replace(/:/g, "-").replace(/ /g, '');
-    var temp=false;
-    if(rootIsOptional && !optional){
-      temp=true;
-      var p=name.split(":");
-      p.pop();
-      var t= "THIS IS A REQUIRED FIELD FOR THE PATH *"+p.concat()+"*. IF YOU FILL THIS FIELD, PLEASE ALSO FILL IN ALL REQUIRED FIELDS FOR THE SAME PATH AND ALL PATH'S BELOW \n\n"+desc;
-      desc=t;
+    var temp = false;
+    if (rootIsOptional && !optional) {
+        temp = true;
+        var p = name.split(":");
+        p.pop();
+        var t = "THIS IS A REQUIRED FIELD FOR THE PATH *" + p.concat() + "*. IF YOU FILL THIS FIELD, PLEASE ALSO FILL IN ALL REQUIRED FIELDS FOR THE SAME PATH AND ALL PATH'S BELOW \n\n" + desc;
+        desc = t;
     }
     switch (type) {
         case "Text":
         case "URL":
-            if(temp){
-              $(panel + panelId).append('<input type="text" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-            }else{
-              $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+            if (temp) {
+                $(panel + panelId).append('<input type="text" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+            } else {
+                $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
             }
             break;
         case "Integer":
         case "Number":
         case "Float":
-          if(temp){
-            $(panel + panelId).append('<input type="number" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-          }else{
-            $(panel + panelId).append('<input type="number" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-          }
-          break;
+            if (temp) {
+                $(panel + panelId).append('<input type="number" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+            } else {
+                $(panel + panelId).append('<input type="number" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+            }
+            break;
         case "Boolean":
-          if(temp){
-            $(panel + panelId).append('<input type="checkbox" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '"><label for=' + id + '>' + name + '</label>');
-          }else{
-            $(panel + panelId).append('<input type="checkbox" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '"><label for=' + id + '>' + name + '</label>');
-          }
+            if (temp) {
+                $(panel + panelId).append('<input type="checkbox" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '"><label for=' + id + '>' + name + '</label>');
+            } else {
+                $(panel + panelId).append('<input type="checkbox" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '"><label for=' + id + '>' + name + '</label>');
+            }
             break;
         case "Date":
-          if(temp){
-            $(panel + panelId).append('<input type="text" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-          }else{
-            $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-          }
+            if (temp) {
+                $(panel + panelId).append('<input type="text" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+            } else {
+                $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+            }
             $('#' + id).datetimepicker({
                 format: 'L'
             });
             break;
         case "DateTime":
-          if(temp){
-            $(panel + panelId).append('<input type="text" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-          }else{
-            $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-          }
+            if (temp) {
+                $(panel + panelId).append('<input type="text" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+            } else {
+                $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+            }
             $('#' + id).datetimepicker();
             break;
         case "Time":
-          if(temp){
-            $(panel + panelId).append('<input type="text" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-          }else{
-            $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-          }
+            if (temp) {
+                $(panel + panelId).append('<input type="text" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+            } else {
+                $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+            }
             $('#' + id).datetimepicker({
                 format: 'LT'
             });
             break;
         case "Enumeration":
-          if(temp){
-            $(panel + panelId).append('<select name="select" class="form-control input-myBackgroundRootOptional" id="' + id + '" title=" ' + desc + '">');
-          }else{
-            $(panel + panelId).append('<select name="select" class="form-control input-myBackground" id="' + id + '" title=" ' + desc + '">');
-          }
+            if (temp) {
+                $(panel + panelId).append('<select name="select" class="form-control input-myBackgroundRootOptional" id="' + id + '" title=" ' + desc + '">');
+            } else {
+                $(panel + panelId).append('<select name="select" class="form-control input-myBackground" id="' + id + '" title=" ' + desc + '">');
+            }
             var enumField = $('#' + id);
             enumField.append('<option value="" disabled selected>Select: ' + name + '</option>');
             enumerations.forEach(function (e) {
@@ -334,7 +334,7 @@ function strip(html) {
     return tmp.textContent || tmp.innerText || '';
 }
 
-function getProps(props, level, fatherType, myPanelId,fatherIsOptional) {
+function getProps(props, level, fatherType, myPanelId, fatherIsOptional) {
     var propList = [];
     for (var p in props) {
         if (!props.hasOwnProperty(p)) continue;
@@ -346,7 +346,7 @@ function getProps(props, level, fatherType, myPanelId,fatherIsOptional) {
                 "type": prop["dsv:expectedType"][0]["schema:name"],
                 "fatherType": fatherType,
                 "isOptional": prop["dsv:isOptional"],
-                "rootIsOptional" : fatherIsOptional
+                "rootIsOptional": fatherIsOptional
             };
 
             if (prop['dsv:expectedType'][0]['@type'] === 'dsv:RestrictedEnumeration') {
@@ -369,11 +369,11 @@ function getProps(props, level, fatherType, myPanelId,fatherIsOptional) {
                 "panelId": myPanelId
             };
             typeList.push(pathType);
-            fIsOptional=false;
-            if(fatherIsOptional===true || prop['dsv:isOptional']===true){
-              fIsOptional=true;
+            var fIsOptional = false;
+            if (fatherIsOptional === true || prop['dsv:isOptional'] === true) {
+                fIsOptional = true;
             }
-            propList = propList.concat(getProps(prop['dsv:expectedType'][0]["dsv:property"], (level === "" ? prop["schema:name"] : level + ": " + prop["schema:name"]), prop['dsv:expectedType'][0]["schema:name"], myPanelId,fIsOptional));
+            propList = propList.concat(getProps(prop['dsv:expectedType'][0]["dsv:property"], (level === "" ? prop["schema:name"] : level + ": " + prop["schema:name"]), prop['dsv:expectedType'][0]["schema:name"], myPanelId, fIsOptional));
         }
     }
     return propList;
@@ -381,13 +381,13 @@ function getProps(props, level, fatherType, myPanelId,fatherIsOptional) {
 
 function createJsonLd(id) {
     var dsName;
-    var schemaName;
-    panelRoots.forEach(function(t){
-      if(t["panelId"]==id){
-        dsName=t["name"];
-        schemaName=t["root"]
-      }
-    })
+    var schemaName = "Thing";
+    panelRoots.forEach(function (t) {
+        if (t["panelId"] == id) {
+            dsName = t["name"];
+            schemaName = t["root"]
+        }
+    });
     var jsonDs;
     var validPaths = [];
     var allPaths = [];
@@ -404,93 +404,93 @@ function createJsonLd(id) {
     }
     var allRequired = true; //variable gets false if an required field is empty
     var allRequiredPaths = true; //variable gets false if an optional field is filled in that has required properties
-    var allInputs=[]; //all input ids from same panel
+    var allInputs = []; //all input ids from same panel
 
     inputFields.forEach(function (a) {
         var compareId = a.slice(0, a.indexOf("_"));
         if (compareId === id.toString()) { //only inputs from same panel
             allInputs.push(a);
-          }});
+        }
+    });
 
-          allInputs.forEach(function(a){
-            var value = $("#" + a).val();
-            var path = a.replace(/\-/g, ".").replace(/ /g, "").split('_');
-            var optional = path[3];
-            var rootOptional=path[4]
-            path = path[2];
-            if ((value === undefined || value === null || value === "") && (optional === "false" && rootOptional==="false")) { //if variable is not optional but empty
-                allRequired = false;
-            }
-            if((value != undefined && value != null && value != "") && rootOptional==="true"){
-              //check if all other paths and sub paths are filled in - else false allRequiredPaths
-              var bAllPaths=[];
-              var bPaths=path.split('.');
-              while(bPaths.length>1){
+    allInputs.forEach(function (a) {
+        var value = $("#" + a).val();
+        var path = a.replace(/\-/g, ".").replace(/ /g, "").split('_');
+        var optional = path[3];
+        var rootOptional = path[4]
+        path = path[2];
+        if ((value === undefined || value === null || value === "") && (optional === "false" && rootOptional === "false")) { //if variable is not optional but empty
+            allRequired = false;
+        }
+        if ((value != undefined && value != null && value != "") && rootOptional === "true") {
+            //check if all other paths and sub paths are filled in - else false allRequiredPaths
+            var bAllPaths = [];
+            var bPaths = path.split('.');
+            while (bPaths.length > 1) {
                 bPaths.pop();
                 bAllPaths.push((bPaths.join(".")))
-              }
-              allInputs.forEach(function(b){
+            }
+            allInputs.forEach(function (b) {
                 var bPath = b.replace(/\-/g, ".").replace(/ /g, "").split('_');
                 var bOptional = bPath[3];
-                var bRootOptional=bPath[4]
+                var bRootOptional = bPath[4]
                 bPath = bPath[2];
-                var len=(bPath.split("."));
-                len=len.length;
+                var len = (bPath.split("."));
+                len = len.length;
                 var bValue = $("#" + b).val();
-                for(var z=0; z<bAllPaths.length; z++){
-                  var len2=bAllPaths[z].split(".");
-                  len2=len2.length;
-                  if(bOptional=="false" && bRootOptional=="true" && (bPath.indexOf(bAllPaths[z])>=0) && len === len2+1){
-                    if(bValue===undefined || bValue==="" || bValue==null){
-                      allRequiredPaths=false;
+                for (var z = 0; z < bAllPaths.length; z++) {
+                    var len2 = bAllPaths[z].split(".");
+                    len2 = len2.length;
+                    if (bOptional == "false" && bRootOptional == "true" && (bPath.indexOf(bAllPaths[z]) >= 0) && len === len2 + 1) {
+                        if (bValue === undefined || bValue === "" || bValue == null) {
+                            allRequiredPaths = false;
+                        }
                     }
-                  }
-                }
-              });
-            }
-            typeList.forEach(function (t) {
-                if (t["panelId"] === id) {
-                    var typePath = {
-                        "name": t["name"],
-                        "path": t["path"]
-                    };
-                    allPaths.push(typePath)
                 }
             });
-            if (!(value === undefined || value === null || value === "")) {
-
-                var temp = path.split(".");
-                while (temp.length > 1) {
-                    temp.pop();
-                    var x = temp.join(".") + ".@type";
-                    validPaths.push(x);
-                }
-
-                allPaths.forEach(function (a) {
-                    validPaths.forEach(function (v) {
-                        if (v === a["path"]) {
-                            resultJson = set(resultJson, a["path"], a["name"])
-                        }
-                    });
-                });
-
-                resultJson = set(resultJson, path, value)
+        }
+        typeList.forEach(function (t) {
+            if (t["panelId"] === id) {
+                var typePath = {
+                    "name": t["name"],
+                    "path": t["path"]
+                };
+                allPaths.push(typePath)
             }
+        });
+        if (!(value === undefined || value === null || value === "")) {
+
+            var temp = path.split(".");
+            while (temp.length > 1) {
+                temp.pop();
+                var x = temp.join(".") + ".@type";
+                validPaths.push(x);
+            }
+
+            allPaths.forEach(function (a) {
+                validPaths.forEach(function (v) {
+                    if (v === a["path"]) {
+                        resultJson = set(resultJson, a["path"], a["name"])
+                    }
+                });
+            });
+
+            resultJson = set(resultJson, path, value)
+        }
 
     });
     if (allRequired && allRequiredPaths) {
         var result = (JSON.stringify(resultJson));
         return resultJson;
     } else {
-        if(!allRequired){
-          send_snackbarMSG("Please fill in all required fields", 3000);
-        }else{
-          send_snackbarMSG("Please fill in all required red fields", 3000);
+        if (!allRequired) {
+            send_snackbarMSG("Please fill in all required fields", 3000);
+        } else {
+            send_snackbarMSG("Please fill in all required red fields", 3000);
         }
         return null;
     }
 }
-
 
 
 function copyStr(str) {
@@ -550,7 +550,7 @@ function call(url, callback) {
 }
 
 function postJson(json, dsId, apiKey, callback) {
-    var url = semantifyUrl+"/api/annotation/";
+    var url = semantifyUrl + "/api/annotation/";
     //url = "http://localhost:8081/api/annotation/";
 
     var options = {
