@@ -147,19 +147,19 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
     var dsProps = curDs["dsv:class"][0]["dsv:property"];
     var req_props = [];
     var opt_props = [];
-    var props = getProps(dsProps, "", dsType, myPanelId);
+    var props = getProps(dsProps, "", dsType, myPanelId,false);
 
     props.forEach(function (prop) {
-        if (prop["isOptional"]) {
-            opt_props.push(prop)
+        if (!prop["isOptional"] && !prop["rootIsOptional"]) {
+            req_props.push(prop)
         }
         else {
-            req_props.push(prop)
+            opt_props.push(prop)
         }
     });
 
     req_props.forEach(function (p) {
-        insertInputField(myPanelId, p["name"], getDesc(p["fatherType"], p["simpleName"]), p["type"], p["enums"], "#panel-body-", false)
+        insertInputField(myPanelId, p["name"], getDesc(p["fatherType"], p["simpleName"]), p["type"], p["enums"], "#panel-body-", p["isOptional"],p["rootIsOptional"])
     });
 
     if (opt_props.length > 0) {
@@ -181,7 +181,7 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
         })(myPanelId);
 
         opt_props.forEach(function (p) {
-            insertInputField(myPanelId, p["name"], getDesc(p["fatherType"], p["simpleName"]), p["type"], p["enums"], "#panel-body-opt-", true)
+            insertInputField(myPanelId, p["name"], getDesc(p["fatherType"], p["simpleName"]), p["type"], p["enums"], "#panel-body-opt-", p["isOptional"],p["rootIsOptional"])
         });
 
         $('#panel-body-opt-' + myPanelId).slideUp(0);
@@ -207,40 +207,76 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
 }
 
 
-function insertInputField(panelId, name, desc, type, enumerations, panel, optional) {
-    var id = panelId + "_" + type + "_" + name + "_" + optional;
+function insertInputField(panelId, name, desc, type, enumerations, panel, optional,rootIsOptional) {
+    var id = panelId + "_" + type + "_" + name + "_" + optional + "_" + rootIsOptional;
     id = id.replace(/:/g, "-").replace(/ /g, '');
+    var temp=false;
+    if(rootIsOptional && !optional){
+      temp=true;
+      var p=name.split(":");
+      p.pop();
+      var t= "THIS IS A REQUIRED FIELD FOR THE PATH "+p.concat()+" \n\n"+desc;
+      desc=t;
+    }
     switch (type) {
         case "Text":
         case "URL":
-            $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+            if(temp){
+              $(panel + panelId).append('<input type="text" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+            }else{
+              $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+            }
             break;
         case "Integer":
         case "Number":
         case "Float":
+          if(temp){
+            $(panel + panelId).append('<input type="number" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+          }else{
             $(panel + panelId).append('<input type="number" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-            break;
+          }
+          break;
         case "Boolean":
+          if(temp){
+            $(panel + panelId).append('<input type="checkbox" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '"><label for=' + id + '>' + name + '</label>');
+          }else{
             $(panel + panelId).append('<input type="checkbox" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '"><label for=' + id + '>' + name + '</label>');
+          }
             break;
         case "Date":
+          if(temp){
+            $(panel + panelId).append('<input type="text" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+          }else{
             $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+          }
             $('#' + id).datetimepicker({
                 format: 'L'
             });
             break;
         case "DateTime":
+          if(temp){
+            $(panel + panelId).append('<input type="text" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+          }else{
             $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+          }
             $('#' + id).datetimepicker();
             break;
         case "Time":
+          if(temp){
+            $(panel + panelId).append('<input type="text" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+          }else{
             $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+          }
             $('#' + id).datetimepicker({
                 format: 'LT'
             });
             break;
         case "Enumeration":
+          if(temp){
+            $(panel + panelId).append('<select name="select" class="form-control input-myBackgroundRootOptional" id="' + id + '" title=" ' + desc + '">');
+          }else{
             $(panel + panelId).append('<select name="select" class="form-control input-myBackground" id="' + id + '" title=" ' + desc + '">');
+          }
             var enumField = $('#' + id);
             enumField.append('<option value="" disabled selected>Select: ' + name + '</option>');
             enumerations.forEach(function (e) {
@@ -266,7 +302,7 @@ function strip(html) {
     return tmp.textContent || tmp.innerText || '';
 }
 
-function getProps(props, level, fatherType, myPanelId) {
+function getProps(props, level, fatherType, myPanelId,fatherIsOptional) {
     var propList = [];
     for (var p in props) {
         if (!props.hasOwnProperty(p)) continue;
@@ -277,7 +313,8 @@ function getProps(props, level, fatherType, myPanelId) {
                 "name": (level === "" ? "" : level + ": ") + prop["schema:name"],
                 "type": prop["dsv:expectedType"][0]["schema:name"],
                 "fatherType": fatherType,
-                "isOptional": prop["dsv:isOptional"]
+                "isOptional": prop["dsv:isOptional"],
+                "rootIsOptional" : fatherIsOptional
             };
 
             if (prop['dsv:expectedType'][0]['@type'] === 'dsv:RestrictedEnumeration') {
@@ -300,7 +337,11 @@ function getProps(props, level, fatherType, myPanelId) {
                 "panelId": myPanelId
             };
             typeList.push(pathType);
-            propList = propList.concat(getProps(prop['dsv:expectedType'][0]["dsv:property"], (level === "" ? prop["schema:name"] : level + ": " + prop["schema:name"]), prop['dsv:expectedType'][0]["schema:name"], myPanelId));
+            fIsOptional=false;
+            if(fatherIsOptional===true || prop['dsv:isOptional']===true){
+              fIsOptional=true;
+            }
+            propList = propList.concat(getProps(prop['dsv:expectedType'][0]["dsv:property"], (level === "" ? prop["schema:name"] : level + ": " + prop["schema:name"]), prop['dsv:expectedType'][0]["schema:name"], myPanelId,fIsOptional));
         }
     }
     return propList;
@@ -335,9 +376,11 @@ function createJsonLd(id) {
             fullPath = fullPath.replace(/ /g, "");
             var path = fullPath.split('_');
             var optional = path[3];
+            var rootOptional=path[4]
             path = path[2];
-            if ((value === undefined || value === null || value === "") && optional === "false") {
+            if ((value === undefined || value === null || value === "") && (optional === "false" && rootOptional==="false")) {
                 allRequired = false;
+
             }
             typeList.forEach(function (t) {
                 if (t["panelId"] === id) {

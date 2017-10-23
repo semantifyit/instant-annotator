@@ -20,6 +20,11 @@
     padding: 7px !important;
 }
 
+.input-myBackgroundRootOptional {
+    padding: 7px !important;
+    background-color: #ffe6e6
+}
+
 .propertyContainer {
     margin-bottom: 5px;
 }
