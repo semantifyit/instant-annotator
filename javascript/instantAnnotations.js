@@ -291,10 +291,6 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
     var temp = false;
     if (rootIsOptional && !optional) {
         temp = true;
-        var p = name.split(":");
-        p.pop();
-        var t = "THIS IS A REQUIRED FIELD FOR THE PATH *" + p.concat() + "*. IF YOU FILL THIS FIELD, PLEASE ALSO FILL IN ALL REQUIRED FIELDS FOR THE SAME PATH AND ALL PATH'S BELOW \n\n" + desc;
-        desc = t;
     }
     switch (type) {
         case "Text":
@@ -451,6 +447,7 @@ function createJsonLd(id) {
     var allRequired = true; //variable gets false if an required field is empty
     var allRequiredPaths = true; //variable gets false if an optional field is filled in that has required properties
     var allInputs = []; //all input ids from same panel
+    var msgs=[];
 
     inputFields.forEach(function (a) {
         var compareId = a.slice(0, a.indexOf("_"));
@@ -489,6 +486,7 @@ function createJsonLd(id) {
                     len2 = len2.length;
                     if (bOptional == "false" && bRootOptional == "true" && (bPath.indexOf(bAllPaths[z]) >= 0) && len === len2 + 1) {
                         if (bValue === undefined || bValue === "" || bValue == null) {
+                            msgs.push(bPath.replace(".",":"));
                             allRequiredPaths = false;
                         }
                     }
@@ -532,7 +530,9 @@ function createJsonLd(id) {
         if (!allRequired) {
             send_snackbarMSG("Please fill in all required fields", 3000);
         } else {
-            send_snackbarMSG("Please fill in all required red fields", 3000);
+          msgs=unique(msgs)
+          msgs.length
+          send_snackbarMSG("Please also fill in " + msgs.join(", "), 3000+(msgs.length-1)*1000);
         }
         return null;
     }
@@ -567,6 +567,14 @@ function syntaxHighlight(json) {
         }
         return '<span class="' + cls + '">' + match + '</span>';
     });
+}
+
+function unique(list) {
+  var result = [];
+  $.each(list, function(i, e) {
+    if ($.inArray(e, result) == -1) result.push(e);
+  });
+  return result;
 }
 
 function send_snackbarMSG(message, duration) {
