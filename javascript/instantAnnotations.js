@@ -432,11 +432,11 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
             });
             break;
         case "Enumeration":
-            if (temp) {
-                $(panel + panelId).append('<select name="select" class="form-control input-myBackgroundRootOptional" id="' + id + '" title=" ' + desc + '">');
-            } else {
-                $(panel + panelId).append('<select name="select" class="form-control input-myBackground" id="' + id + '" title=" ' + desc + '">');
-            }
+              if (temp) {
+                  $(panel + panelId).append('<select name="select" class="form-control input-myBackgroundRootOptional" id="' + id + '" title=" ' + desc + '">');
+              } else {
+                  $(panel + panelId).append('<select name="select" class="form-control input-myBackground" id="' + id + '" title=" ' + desc + '">');
+              }
             var enumField = $('#' + id);
             enumField.append('<option value="" disabled selected>Select: ' + name + '</option>');
             enumerations.forEach(function (e) {
@@ -450,6 +450,7 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
     $("#"+id).data("isOptional",optional);
     $("#"+id).data("rootIsOptional",rootIsOptional);
     $("#"+id).data("multipleValuesAllowed",multipleValuesAllowed);
+    $("#"+id).data("name",name);
     inputFields.push(id);
 }
 
@@ -550,7 +551,7 @@ function createJsonLd(id) {
 
     allInputs.forEach(function (a) {
         var value = $("#" + a).val();
-        var path = $("#" + a).attr("placeholder");
+        var path = $("#" + a).data("name");
         var optional =$("#" + a).data("isOptional");
         var rootOptional = $("#" + a).data("rootIsOptional");
         if ((value === undefined || value === null || value === "") && (optional === false && rootOptional === false)) { //if variable is not optional but empty
@@ -565,7 +566,8 @@ function createJsonLd(id) {
                 bAllPaths.push((bPaths.join("-")))
             }
             allInputs.forEach(function (b) {
-                var bPath = $("#" + b).attr("placeholder");
+                var bPath = $("#" + b).data("name");
+                console.log(bPath)
                 var bOptional = $("#" + b).data("isOptional");
                 var bRootOptional = $("#" + b).data("rootIsOptional");
                 var len = (bPath.split("-"));
