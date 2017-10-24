@@ -287,7 +287,7 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
     });
 
     req_props.forEach(function (p) {
-        insertInputField(myPanelId, p["name"], getDesc(p["fatherType"], p["simpleName"]), p["type"], p["enums"], "#panel-body-", p["isOptional"], p["rootIsOptional"])
+        insertInputField(myPanelId, p["name"], getDesc(p["fatherType"], p["simpleName"]), p["type"], p["enums"], "#panel-body-", p["isOptional"], p["rootIsOptional"],p["multipleValuesAllowed"])
     });
 
     if (opt_props.length > 0) {
@@ -309,7 +309,7 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
         })(myPanelId);
 
         opt_props.forEach(function (p) {
-            insertInputField(myPanelId, p["name"], getDesc(p["fatherType"], p["simpleName"]), p["type"], p["enums"], "#panel-body-opt-", p["isOptional"], p["rootIsOptional"])
+            insertInputField(myPanelId, p["name"], getDesc(p["fatherType"], p["simpleName"]), p["type"], p["enums"], "#panel-body-opt-", p["isOptional"], p["rootIsOptional"],p["multipleValuesAllowed"])
         });
 
         $('#panel-body-opt-' + myPanelId).slideUp(0);
@@ -346,9 +346,10 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
 }
 
 
-function insertInputField(panelId, name, desc, type, enumerations, panel, optional, rootIsOptional) {
-    var id = panelId + "_" + type + "_" + name + "_" + optional + "_" + rootIsOptional;
-    id = id.replace(/:/g, "-").replace(/ /g, '');
+function insertInputField(panelId, name, desc, type, enumerations, panel, optional, rootIsOptional, multipleValuesAllowed) {
+    //var id = panelId + "_" + type + "_" + name + "_" + optional + "_" + rootIsOptional;
+    //id = id.replace(/:/g, "-").replace(/ /g, '');
+    var id="IA_"+panelId+"_"+name;
     var temp = false;
     if (rootIsOptional && !optional) {
         temp = true;
@@ -377,6 +378,14 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
             } else {
                 $(panel + panelId).append('<input type="checkbox" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '"><label for=' + id + '>' + name + '</label>');
             }
+            $("#"+id).val("false");
+            $("#"+id).on('change', function() {
+              if ($(this).is(':checked')) {
+                $(this).attr('value', 'true');
+              } else {
+                $(this).attr('value', 'false');
+              }
+            });
             break;
         case "Date":
             if (temp) {
@@ -420,6 +429,11 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
             enumField.append('</select>');
             break;
     }
+    $("#"+id).data("type",type);
+    $("#"+id).data("enumerations",enumerations);
+    $("#"+id).data("isOptional",optional);
+    $("#"+id).data("rootIsOptional",rootIsOptional);
+    $("#"+id).data("multipleValuesAllowed",multipleValuesAllowed);
     inputFields.push(id);
 }
 
@@ -445,10 +459,11 @@ function getProps(props, level, fatherType, myPanelId, fatherIsOptional) {
         if (prop['dsv:expectedType'][0]['@type'] !== "dsv:RestrictedClass") {
             var simpleProp = {
                 "simpleName": prop["schema:name"],
-                "name": (level === "" ? "" : level + ": ") + prop["schema:name"],
+                "name": (level === "" ? "" : level + "-") + prop["schema:name"],
                 "type": prop["dsv:expectedType"][0]["schema:name"],
                 "fatherType": fatherType,
                 "isOptional": prop["dsv:isOptional"],
+                "multipleValuesAllowed": prop["dsv:multipleValuesAllowed"],
                 "rootIsOptional": fatherIsOptional
             };
 
@@ -464,8 +479,8 @@ function getProps(props, level, fatherType, myPanelId, fatherIsOptional) {
             propList.push(simpleProp);
         }
         else {
-            var myLevel = level === "" ? prop["schema:name"] : level + "." + prop["schema:name"];
-            var path = myLevel + ".@type";
+            var myLevel = level === "" ? prop["schema:name"] : level + "-" + prop["schema:name"];
+            var path = myLevel + "-@type";
             var pathType = {
                 "name": prop['dsv:expectedType'][0]['schema:name'],
                 "path": path,
@@ -476,7 +491,7 @@ function getProps(props, level, fatherType, myPanelId, fatherIsOptional) {
             if (fatherIsOptional === true || prop['dsv:isOptional'] === true) {
                 fIsOptional = true;
             }
-            propList = propList.concat(getProps(prop['dsv:expectedType'][0]["dsv:property"], (level === "" ? prop["schema:name"] : level + ": " + prop["schema:name"]), prop['dsv:expectedType'][0]["schema:name"], myPanelId, fIsOptional));
+            propList = propList.concat(getProps(prop['dsv:expectedType'][0]["dsv:property"], (level === "" ? prop["schema:name"] : level + "-" + prop["schema:name"]), prop['dsv:expectedType'][0]["schema:name"], myPanelId, fIsOptional));
         }
     }
     return propList;
@@ -511,7 +526,7 @@ function createJsonLd(id) {
     var msgs = [];
 
     inputFields.forEach(function (a) {
-        var compareId = a.slice(0, a.indexOf("_"));
+        var compareId = a.slice(a.indexOf("_")+1,a.indexOf("_", a.indexOf("_") + 1) );
         if (compareId === id.toString()) { //only inputs from same panel
             allInputs.push(a);
         }
@@ -519,35 +534,33 @@ function createJsonLd(id) {
 
     allInputs.forEach(function (a) {
         var value = $("#" + a).val();
-        var path = a.replace(/\-/g, ".").replace(/ /g, "").split('_');
-        var optional = path[3];
-        var rootOptional = path[4];
-        path = path[2];
-        if ((value === undefined || value === null || value === "") && (optional === "false" && rootOptional === "false")) { //if variable is not optional but empty
+        var path = $("#" + a).attr("placeholder");
+        var optional =$("#" + a).data("isOptional");
+        var rootOptional = $("#" + a).data("rootIsOptional");
+        if ((value === undefined || value === null || value === "") && (optional === false && rootOptional === false)) { //if variable is not optional but empty
             allRequired = false;
         }
-        if ((value != undefined && value != null && value != "") && rootOptional === "true") {
+        if ((value != undefined && value != null && value != "") && rootOptional === true) {
             //check if all other paths and sub paths are filled in - else false allRequiredPaths
             var bAllPaths = [];
-            var bPaths = path.split('.');
+            var bPaths = path.split('-');
             while (bPaths.length > 1) {
                 bPaths.pop();
-                bAllPaths.push((bPaths.join(".")))
+                bAllPaths.push((bPaths.join("-")))
             }
             allInputs.forEach(function (b) {
-                var bPath = b.replace(/\-/g, ".").replace(/ /g, "").split('_');
-                var bOptional = bPath[3];
-                var bRootOptional = bPath[4]
-                bPath = bPath[2];
-                var len = (bPath.split("."));
+                var bPath = $("#" + b).attr("placeholder");
+                var bOptional = $("#" + b).data("isOptional");
+                var bRootOptional = $("#" + b).data("rootIsOptional");
+                var len = (bPath.split("-"));
                 len = len.length;
                 var bValue = $("#" + b).val();
                 for (var z = 0; z < bAllPaths.length; z++) {
-                    var len2 = bAllPaths[z].split(".");
+                    var len2 = bAllPaths[z].split("-");
                     len2 = len2.length;
-                    if (bOptional == "false" && bRootOptional == "true" && (bPath.indexOf(bAllPaths[z]) >= 0) && len === len2 + 1) {
+                    if (bOptional == false && bRootOptional == true && (bPath.indexOf(bAllPaths[z]) >= 0) && len === len2 + 1) {
                         if (bValue === undefined || bValue === "" || bValue == null) {
-                            msgs.push(bPath.replace(".", ":"));
+                           msgs.push(bPath)
                             allRequiredPaths = false;
                         }
                     }
@@ -565,16 +578,17 @@ function createJsonLd(id) {
         });
         if (!(value === undefined || value === null || value === "")) {
 
-            var temp = path.split(".");
+            var temp = path.split("-");
             while (temp.length > 1) {
                 temp.pop();
-                var x = temp.join(".") + ".@type";
+                var x = temp.join("-") + "-@type";
                 validPaths.push(x);
             }
 
             allPaths.forEach(function (a) {
                 validPaths.forEach(function (v) {
                     if (v === a["path"]) {
+
                         resultJson = set(resultJson, a["path"], a["name"])
                     }
                 });
@@ -652,7 +666,7 @@ function send_snackbarMSG(message, duration) {
 
 function set(obj, path, value) {
     var schema = obj;
-    var pList = path.split('.');
+    var pList = path.split('-');
     var len = pList.length;
     for (var i = 0; i < len - 1; i++) {
         var elem = pList[i];
@@ -695,4 +709,3 @@ function httpPostJson(url, json, callback) {
         }
     });
 }
-
