@@ -16,6 +16,7 @@ var semantifyToken;
 var copyBtn = {
     "name": "Copy",
     "icon": "content_copy",
+    "json": true,
     "onclick": function (resp) {
         console.log("Copy");
         if (resp.jsonLd)
@@ -26,10 +27,11 @@ var copyBtn = {
 var clearBtn = {
     "name": "Clear",
     "icon": "delete",
+    "json": false,
     "onclick": function (resp) {
         console.log("Clear");
         inputFields.forEach(function (i) {
-            var id = i.slice(0, i.indexOf("_"));
+            var id = i.slice(i.indexOf("_")+1,i.indexOf("_", i.indexOf("_") + 1) );
             if (resp.panelId.toString() === id) {
                 $("#" + i).val("");
             }
@@ -40,6 +42,7 @@ var clearBtn = {
 var saveBtn = {
     "name": "Save",
     "icon": "backup",
+    "json": true,
     "onclick": function (resp) {
         if (!resp.jsonLd)
             return;
@@ -172,6 +175,7 @@ var saveBtn = {
 var previewBtn = {
     "name": "Preview",
     "icon": "code",
+    "json": true,
     "onclick": function (resp) {
         if (resp.jsonLd === null) {
             return;
@@ -339,6 +343,7 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
                 var onclick = buttons[j]["onclick"];
                 var additionalClasses = buttons[j]["additionalClasses"];
                 var icon = buttons[j].hasOwnProperty("icon") ? buttons[j]["icon"] : null;
+                var json = buttons[j]["json"];
 
                 $('#panel-footer-' + myPanelId).append(
                     '<button class="btn button-sti-red" id="panel-footer-btn-' + name + '-' + myPanelId + '" style="margin: 5px 5px; padding: 10px 10px" ' + (additionalClasses ? additionalClasses : "") + ' title="' + name + '" >' +
@@ -349,7 +354,7 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
                 $('#panel-footer-btn-' + name + '-' + myPanelId)
                     .click(function () {
                         onclick({
-                            "jsonLd": createJsonLd(arg),
+                            "jsonLd": json ? createJsonLd(arg) : null,
                             "jsonWarning": "",
                             "dsID": "",
                             "panelId": arg
