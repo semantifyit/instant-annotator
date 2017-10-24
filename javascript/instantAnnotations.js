@@ -10,7 +10,7 @@ var inputFields = [];
 var semantifyUrl = "https://staging.semantify.it";
 //semantifyUrl = "http://localhost:8081";
 
-var saveApiKey = "B1Oia2oT-";
+var saveApiKey = "Sy5Zx9h6b";
 var semantifyToken;
 
 var copyBtn = {
@@ -41,7 +41,6 @@ var saveBtn = {
     "name": "Save",
     "icon": "backup",
     "onclick": function (resp) {
-        console.log("save");
         if (!resp.jsonLd)
             return;
 
@@ -65,9 +64,9 @@ var saveBtn = {
                 var annUrl = 'https://smtfy.it/' + saveRes[0]["UID"];
                 var dummy = document.createElement("div");
                 document.body.appendChild(dummy);
-                dummy.setAttribute("id", "preview_id");
-                $('#preview_id').append(
-                    '<div class="modal fade" id="saveModal" role="dialog">' +
+                dummy.setAttribute("id", "IA_preview_id");
+                $('#IA_preview_id').append(
+                    '<div class="modal fade" id="IA_saveModal" role="dialog">' +
                     '<div class="modal-dialog">' +
                     '<div class="modal-content">' +
                     '<div class="modal-header">' +
@@ -75,16 +74,9 @@ var saveBtn = {
                     '<h4 class="modal-title">Saved Annotation</h4>' +
                     '</div>' +
                     '<div class="modal-body">' +
-                    'Saved annotation "' + saveRes[0]["name"] + '" <div id="toWebsite" style="display: inline"></div> at: <a id="annUrl" href="' + annUrl + '">' + annUrl + '</a> <br/><br/>' +
+                    'Saved annotation "' + saveRes[0]["name"] + '" <div id="IA_toWebsite" style="display: inline"></div> at: <a id="IA_annUrl" href="' + annUrl + '">' + annUrl + '</a> <br/><br/>' +
                     '<a href="https://github.com/semantifyit/semantify-injection-js-sample">How do i get this annotation into my website?</a> <br/><br/><br/>' +
-                    '<div id="loginSection">' +
-                    '<p>Want to save this Annotation to your Semantify.it account?</p>' +
-                    '<button type="button" class="btn button-sti-red" id="loginBtn">Login</button>' +
-                    '<div id="credentialsSection" hidden>' +
-                    '<input type="text" class="form-control" id="semantify_username" placeholder="Username/Email" title="Username/Email">' +
-                    '<input type="password" class="form-control" id="semantify_password" placeholder="Password" title="Password">' +
-                    '</div>' +
-                    '</div>' +
+                    '<div id="IA_loginSection">' +
                     '</div>' +
                     '<div class="modal-footer">' +
                     '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>' +
@@ -93,50 +85,74 @@ var saveBtn = {
                     '</div>' +
                     '</div>'
                 );
-                $('#saveModal').modal();
-                $('#loginBtn').click(function () {
-                    if ($('#credentialsSection').css('display') === 'none') {
-                        $('#credentialsSection').slideDown(100);
+
+                var addWebsites = function(){
+                    httpGetHeaders(semantifyUrl + "/api/website", {'Authorization': 'Bearer ' + semantifyToken}, function(websiteRes){
+                        if(websiteRes){
+                            $('#IA_loginSection').after('<div class="list-group" id="IA_my_websites"><h4>Your websites: (Select one to save your annotation to) </h4> </div>');
+                            websiteRes.forEach(function(ele){
+                                $('#IA_my_websites').append('<button type="button" class="list-group-item list-group-item-action" id="IA_' + ele["apiKey"]  + '" style="padding: 5px 0">' + ele["name"] + ' (' + ele["domain"] + ')' + '</button>');
+                                $('#IA_'+ele["apiKey"]).click(function(){
+                                    $('#IA_my_websites').slideUp(100);
+                                    httpPostJson(semantifyUrl + "/api/annotation/" + ele["apiKey"], bulk, function (newSaveRes) {
+                                        if (newSaveRes) {
+                                            snackBarOptions["content"] = 'Saved the annotation to: ' + ele["name"] + ' (' + ele["domain"] + ')';
+                                            $.snackbar(snackBarOptions);
+                                            $('#IA_toWebsite').append('to website ' + ele["name"] + ' (' + ele["domain"] + ')');
+                                            var newUrl = 'https://smtfy.it/' + newSaveRes[0]["UID"];
+                                            $('#IA_annUrl').html(newUrl).attr("href", newUrl)
+                                        }
+                                        else{
+                                            snackBarOptions["content"] = 'Failed to save the annotation to: ' + ele["name"] + ' (' + ele["domain"] + ')';
+                                            $.snackbar(snackBarOptions);
+                                        }
+                                    });
+
+                                });
+                            });
+                        }
+                        else{
+                            snackBarOptions["content"] = "There has been an error when retrieving your websites";
+                            $.snackbar(snackBarOptions);
+                        }
+                    });
+                };
+
+                if(!semantifyToken){
+                    $('#IA_loginSection').append(
+                        '<p>Want to save this Annotation to your Semantify.it account?</p>' +
+                        '<button type="button" class="btn button-sti-red" id="IA_loginBtn">Login</button>' +
+                        '<div id="IA_credentialsSection" hidden>' +
+                        '<input type="text" class="form-control" id="IA_username" placeholder="Username/Email" title="Username/Email">' +
+                        '<input type="password" class="form-control" id="IA_password" placeholder="Password" title="Password">' +
+                        '</div>'
+                    );
+                }
+                else{
+                    addWebsites();
+                }
+
+                $('#IA_saveModal')
+                    .modal()
+                    .on('hidden.bs.modal', function () {
+                        $(this).remove();
+                    });
+
+                $('#IA_loginBtn').click(function () {
+                    if ($('#IA_credentialsSection').css('display') === 'none') {
+                        $('#IA_credentialsSection').slideDown(100);
                     }
                     else {
                         var credentials = {
-                            identifier: $('#semantify_username').val(),
-                            password: $('#semantify_password').val()
+                            identifier: $('#IA_username').val(),
+                            password: $('#IA_password').val()
                         };
 
                         httpPostJson(semantifyUrl + "/api/login" , credentials, function (loginResp) {
                             if(loginResp){
-                                $('#loginSection').slideUp(100);
+                                $('#IA_loginSection').slideUp(100);
                                 semantifyToken = loginResp["token"];
-                                httpGetHeaders(semantifyUrl + "/api/website", {'Authorization': 'Bearer ' + semantifyToken}, function(websiteRes){
-                                    if(websiteRes){
-                                        $('#loginSection').after('<div class="list-group" id="my_websites"><h4>Your websites: (Select one to save your annotation to) </h4> </div>');
-                                        websiteRes.forEach(function(ele){
-                                            $('#my_websites').append('<button type="button" class="list-group-item list-group-item-action" id="' + ele["apiKey"]  + '" style="padding: 5px 0">' + ele["name"] + ' (' + ele["domain"] + ')' + '</button>');
-                                            $('#'+ele["apiKey"]).click(function(){
-                                                $('#my_websites').slideUp(100);
-                                                httpPostJson(semantifyUrl + "/api/annotation/" + ele["apiKey"], bulk, function (newSaveRes) {
-                                                    if (newSaveRes) {
-                                                        snackBarOptions["content"] = 'Saved the annotation to: ' + ele["name"] + ' (' + ele["domain"] + ')';
-                                                        $.snackbar(snackBarOptions);
-                                                        $('#toWebsite').append('to website ' + ele["name"] + ' (' + ele["domain"] + ')');
-                                                        var newUrl = 'https://smtfy.it/' + newSaveRes[0]["UID"];
-                                                        $('#annUrl').html(newUrl).attr("href", newUrl)
-                                                    }
-                                                    else{
-                                                        snackBarOptions["content"] = 'Failed to save the annotation to: ' + ele["name"] + ' (' + ele["domain"] + ')';
-                                                        $.snackbar(snackBarOptions);
-                                                    }
-                                                });
-
-                                            });
-                                        });
-                                    }
-                                    else{
-                                        snackBarOptions["content"] = "There has been an error when retrieving your websites";
-                                        $.snackbar(snackBarOptions);
-                                    }
-                                });
+                                addWebsites();
                             }
                             else{
                                 snackBarOptions["content"] = "Couldn't log in to semantify.it";
