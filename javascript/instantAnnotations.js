@@ -605,7 +605,7 @@ function createJsonLd(id) {
         if (!allRequired) {
             send_snackbarMSG("Please fill in all required fields", 3000);
         } else {
-            msgs = unique(msgs);
+            msgs = htmlList(unique(msgs));
             send_snackbarMSG("Please also fill in <ul>" + msgs.join("")+"</ul", 3000 + (msgs.length - 1) * 1000);
         }
         return null;
@@ -646,10 +646,19 @@ function syntaxHighlight(json) {
 function unique(list) {
     var result = [];
     $.each(list, function (i, e) {
-        if ($.inArray(e, result) == -1) result.push("<li>"+e + "</li> \n");
+        if ($.inArray(e, result) == -1) result.push(e);
     });
     return result;
 }
+
+function htmlList(list){
+  var result = [];
+  $.each(list, function (i, e) {
+      result.push("<li>"+e + "</li> \n");
+  });
+  return result;
+}
+
 
 function send_snackbarMSG(message, duration) {
     var options = {
