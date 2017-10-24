@@ -373,27 +373,16 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
     switch (type) {
         case "Text":
         case "URL":
-            if (temp) {
-                $(panel + panelId).append('<input type="text" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-            } else {
-                $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-            }
+              $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
             break;
         case "Integer":
         case "Number":
         case "Float":
-            if (temp) {
-                $(panel + panelId).append('<input type="number" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-            } else {
-                $(panel + panelId).append('<input type="number" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-            }
+            $(panel + panelId).append('<input type="number" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+
             break;
         case "Boolean":
-            if (temp) {
-                $(panel + panelId).append('<input type="checkbox" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '"><label for=' + id + '>' + name + '</label>');
-            } else {
-                $(panel + panelId).append('<input type="checkbox" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '"><label for=' + id + '>' + name + '</label>');
-            }
+            $(panel + panelId).append('<input type="checkbox" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '"><label for=' + id + '>' + name + '</label>');
             $("#"+id).val("false");
             $("#"+id).on('change', function() {
               if ($(this).is(':checked')) {
@@ -404,36 +393,24 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
             });
             break;
         case "Date":
-            if (temp) {
-                $(panel + panelId).append('<input type="text" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-            } else {
-                $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-            }
+            $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
             $('#' + id).datetimepicker({
                 format: 'L'
             });
             break;
         case "DateTime":
-            if (temp) {
-                $(panel + panelId).append('<input type="text" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-            } else {
-                $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-            }
+            $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
             $('#' + id).datetimepicker();
             break;
         case "Time":
-            if (temp) {
-                $(panel + panelId).append('<input type="text" class="form-control input-myBackgroundRootOptional" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-            } else {
-                $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-            }
+            $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
             $('#' + id).datetimepicker({
                 format: 'LT'
             });
             break;
         case "Enumeration":
-              if (temp) {
-                  $(panel + panelId).append('<select name="select" class="form-control input-myBackgroundRootOptional" id="' + id + '" title=" ' + desc + '">');
+              if (multipleValuesAllowed) {
+                  $(panel + panelId).append('<select multiple name="select" class="form-control input-myBackground input-mySelect" id="' + id + '" title=" ' + "You can add more than one value by pressing *Ctrl* \n\n"+desc + '">');
               } else {
                   $(panel + panelId).append('<select name="select" class="form-control input-myBackground" id="' + id + '" title=" ' + desc + '">');
               }
@@ -554,10 +531,10 @@ function createJsonLd(id) {
         var path = $("#" + a).data("name");
         var optional =$("#" + a).data("isOptional");
         var rootOptional = $("#" + a).data("rootIsOptional");
-        if ((value === undefined || value === null || value === "") && (optional === false && rootOptional === false)) { //if variable is not optional but empty
+        if ((value === undefined || value === null || value === "" || value.length===0 || value.length==undefined) && (optional === false && rootOptional === false)) { //if variable is not optional but empty
             allRequired = false;
         }
-        if ((value != undefined && value != null && value != "") && rootOptional === true) {
+        if ((value != undefined && value != null && value != "" && value.length!=0 && value.length!=undefined) && rootOptional === true) {
             //check if all other paths and sub paths are filled in - else false allRequiredPaths
             var bAllPaths = [];
             var bPaths = path.split('-');
@@ -577,9 +554,9 @@ function createJsonLd(id) {
                     var len2 = bAllPaths[z].split("-");
                     len2 = len2.length;
                     if (bOptional == false && bRootOptional == true && (bPath.indexOf(bAllPaths[z]) >= 0) && len === len2 + 1) {
-                        if (bValue === undefined || bValue === "" || bValue == null) {
+                        if (bValue === undefined || bValue === "" || bValue == null || bValue.length===0 || bValue.length==undefined) {
                            msgs.push(bPath)
-                            allRequiredPaths = false;
+                           allRequiredPaths = false;
                         }
                     }
                 }
@@ -594,7 +571,7 @@ function createJsonLd(id) {
                 allPaths.push(typePath)
             }
         });
-        if (!(value === undefined || value === null || value === "")) {
+        if (!(value === undefined || value === null || value === "" || value.length===0 || value.length==undefined )) {
 
             var temp = path.split("-");
             while (temp.length > 1) {

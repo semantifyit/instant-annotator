@@ -20,9 +20,9 @@
     padding: 7px !important;
 }
 
-.input-myBackgroundRootOptional {
-    padding: 7px !important;
-    background-color: #ffe6e6
+.input-mySelect {
+  font-weight: normal;
+  font-size: medium;
 }
 
 .propertyContainer {
