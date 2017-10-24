@@ -31,7 +31,7 @@ var clearBtn = {
     "onclick": function (resp) {
         console.log("Clear");
         inputFields.forEach(function (i) {
-            var id = i.slice(i.indexOf("_")+1,i.indexOf("_", i.indexOf("_") + 1) );
+            var id = i.slice(i.indexOf("_") + 1, i.indexOf("_", i.indexOf("_") + 1));
             if (resp.panelId.toString() === id) {
                 $("#" + i).val("");
             }
@@ -89,13 +89,13 @@ var saveBtn = {
                     '</div>'
                 );
 
-                var addWebsites = function(){
-                    httpGetHeaders(semantifyUrl + "/api/website", {'Authorization': 'Bearer ' + semantifyToken}, function(websiteRes){
-                        if(websiteRes){
+                var addWebsites = function () {
+                    httpGetHeaders(semantifyUrl + "/api/website", {'Authorization': 'Bearer ' + semantifyToken}, function (websiteRes) {
+                        if (websiteRes) {
                             $('#IA_loginSection').after('<div class="list-group" id="IA_my_websites"><h4>Your websites: (Select one to save your annotation to) </h4> </div>');
-                            websiteRes.forEach(function(ele){
-                                $('#IA_my_websites').append('<button type="button" class="list-group-item list-group-item-action" id="IA_' + ele["apiKey"]  + '" style="padding: 5px 0">' + ele["name"] + ' (' + ele["domain"] + ')' + '</button>');
-                                $('#IA_'+ele["apiKey"]).click(function(){
+                            websiteRes.forEach(function (ele) {
+                                $('#IA_my_websites').append('<button type="button" class="list-group-item list-group-item-action" id="IA_' + ele["apiKey"] + '" style="padding: 5px 0">' + ele["name"] + ' (' + ele["domain"] + ')' + '</button>');
+                                $('#IA_' + ele["apiKey"]).click(function () {
                                     $('#IA_my_websites').slideUp(100);
                                     httpPostJson(semantifyUrl + "/api/annotation/" + ele["apiKey"], bulk, function (newSaveRes) {
                                         if (newSaveRes) {
@@ -105,7 +105,7 @@ var saveBtn = {
                                             var newUrl = 'https://smtfy.it/' + newSaveRes[0]["UID"];
                                             $('#IA_annUrl').html(newUrl).attr("href", newUrl)
                                         }
-                                        else{
+                                        else {
                                             snackBarOptions["content"] = 'Failed to save the annotation to: ' + ele["name"] + ' (' + ele["domain"] + ')';
                                             $.snackbar(snackBarOptions);
                                         }
@@ -114,14 +114,14 @@ var saveBtn = {
                                 });
                             });
                         }
-                        else{
+                        else {
                             snackBarOptions["content"] = "There has been an error when retrieving your websites";
                             $.snackbar(snackBarOptions);
                         }
                     });
                 };
 
-                if(!semantifyToken){
+                if (!semantifyToken) {
                     $('#IA_loginSection').append(
                         '<p>Want to save this Annotation to your Semantify.it account?</p>' +
                         '<button type="button" class="btn button-sti-red" id="IA_loginBtn">Login</button>' +
@@ -131,7 +131,7 @@ var saveBtn = {
                         '</div>'
                     );
                 }
-                else{
+                else {
                     addWebsites();
                 }
 
@@ -151,13 +151,13 @@ var saveBtn = {
                             password: $('#IA_password').val()
                         };
 
-                        httpPostJson(semantifyUrl + "/api/login" , credentials, function (loginResp) {
-                            if(loginResp){
+                        httpPostJson(semantifyUrl + "/api/login", credentials, function (loginResp) {
+                            if (loginResp) {
                                 $('#IA_loginSection').slideUp(100);
                                 semantifyToken = loginResp["token"];
                                 addWebsites();
                             }
-                            else{
+                            else {
                                 snackBarOptions["content"] = "Couldn't log in to semantify.it";
                                 $.snackbar(snackBarOptions);
                             }
@@ -232,20 +232,20 @@ $('.IA_Box').each(function () {
         '</div>'
     );
 
-    (function (id, jqueryElement) {
+    (function (id, $jqueryElement) {
         if (dsId) {
             httpGet(semantifyUrl + "/api/domainSpecification/" + dsId, function (ds) {
-                addBox(jqueryElement, id, ds, buttons);
+                addBox($jqueryElement, id, ds, buttons);
             });
         }
         else if (dsHash) {
             httpGet(semantifyUrl + "/api/domainSpecification/hash/" + dsHash, function (ds) {
-                addBox(jqueryElement, id, ds, buttons);
+                addBox($jqueryElement, id, ds, buttons);
             });
         }
         else if (dsName) {
             httpGet(semantifyUrl + "/api/domainSpecification/searchName/" + dsName, function (dsList) {
-                addBox(jqueryElement, id, dsList[0], buttons);
+                addBox($jqueryElement, id, dsList[0], buttons);
             });
         }
     }(panelId, $(this)));
@@ -261,22 +261,22 @@ function getClassesJson() {
     });
 }
 
-function addBox(jqueryElement, myPanelId, ds, buttons) {
+function addBox($jqueryElement, myPanelId, ds, buttons) {
     if (!(classesReady)) {
         setTimeout(function () {
-            addBox(jqueryElement, myPanelId, ds, buttons);
+            addBox($jqueryElement, myPanelId, ds, buttons);
         }, 100);
         return;
     }
 
     $('#loading' + myPanelId).hide();
-    var title = jqueryElement.data("title");
+    var title = $jqueryElement.data("title");
     var curDs = ds["content"];
     var dsName = (title ? title : (curDs === undefined ? "DS not found" : curDs["schema:name"]));
     var dsType = curDs["dsv:class"][0]["schema:name"];
 
     var footer = (buttons && buttons.length > 0 ? '<div class="panel-footer text-center" id="panel-footer-' + myPanelId + '"></div>' : '');      //only display footer if there are some buttons
-    jqueryElement.append(
+    $jqueryElement.append(
         '<div class="panel panel-info col-lg-3 col-md-4 col-sm-6" id="panel-' + myPanelId + '" style="margin: 10px; padding: 10px;" >' +
         '<div class="panel-heading sti-red"> ' +
         '<h3>' + dsName + '</h3>' +
@@ -307,7 +307,7 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
     });
 
     req_props.forEach(function (p) {
-        insertInputField(myPanelId, p["name"], getDesc(p["fatherType"], p["simpleName"]), p["type"], p["enums"], "#panel-body-", p["isOptional"], p["rootIsOptional"],p["multipleValuesAllowed"])
+        insertInputField(myPanelId, p["name"], getDesc(p["fatherType"], p["simpleName"]), p["type"], p["enums"], "#panel-body-", p["isOptional"], p["rootIsOptional"], p["multipleValuesAllowed"])
     });
 
     if (opt_props.length > 0) {
@@ -329,7 +329,7 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
         })(myPanelId);
 
         opt_props.forEach(function (p) {
-            insertInputField(myPanelId, p["name"], getDesc(p["fatherType"], p["simpleName"]), p["type"], p["enums"], "#panel-body-opt-", p["isOptional"], p["rootIsOptional"],p["multipleValuesAllowed"])
+            insertInputField(myPanelId, p["name"], getDesc(p["fatherType"], p["simpleName"]), p["type"], p["enums"], "#panel-body-opt-", p["isOptional"], p["rootIsOptional"], p["multipleValuesAllowed"])
         });
 
         $('#panel-body-opt-' + myPanelId).slideUp(0);
@@ -370,7 +370,7 @@ function addBox(jqueryElement, myPanelId, ds, buttons) {
 function insertInputField(panelId, name, desc, type, enumerations, panel, optional, rootIsOptional, multipleValuesAllowed) {
     //var id = panelId + "_" + type + "_" + name + "_" + optional + "_" + rootIsOptional;
     //id = id.replace(/:/g, "-").replace(/ /g, '');
-    var id="IA_"+panelId+"_"+name;
+    var id = "IA_" + panelId + "_" + name;
     var temp = false;
     if (rootIsOptional && !optional) {
         temp = true;
@@ -378,7 +378,7 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
     switch (type) {
         case "Text":
         case "URL":
-              $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+            $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
             break;
         case "Integer":
         case "Number":
@@ -388,14 +388,15 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
             break;
         case "Boolean":
             $(panel + panelId).append('<input type="checkbox" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '"><label for=' + id + '>' + name + '</label>');
-            $("#"+id).val("false");
-            $("#"+id).on('change', function() {
-              if ($(this).is(':checked')) {
-                $(this).attr('value', 'true');
-              } else {
-                $(this).attr('value', 'false');
-              }
-            });
+            $("#" + id)
+                .val("false")
+                .on('change', function () {
+                    if ($(this).is(':checked')) {
+                        $(this).attr('value', 'true');
+                    } else {
+                        $(this).attr('value', 'false');
+                    }
+                });
             break;
         case "Date":
             $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
@@ -414,11 +415,11 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
             });
             break;
         case "Enumeration":
-              if (multipleValuesAllowed) {
-                  $(panel + panelId).append('<select multiple name="select" class="form-control input-myBackground input-mySelect" id="' + id + '" title=" ' + "You can add more than one value by pressing *Ctrl* \n\n"+desc + '">');
-              } else {
-                  $(panel + panelId).append('<select name="select" class="form-control input-myBackground" id="' + id + '" title=" ' + desc + '">');
-              }
+            if (multipleValuesAllowed) {
+                $(panel + panelId).append('<select multiple name="select" class="form-control input-myBackground input-mySelect" id="' + id + '" title=" ' + "You can add more than one value by pressing *Ctrl* \n\n" + desc + '">');
+            } else {
+                $(panel + panelId).append('<select name="select" class="form-control input-myBackground" id="' + id + '" title=" ' + desc + '">');
+            }
             var enumField = $('#' + id);
             enumField.append('<option value="" disabled selected>Select: ' + name + '</option>');
             enumerations.forEach(function (e) {
@@ -427,12 +428,13 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
             enumField.append('</select>');
             break;
     }
-    $("#"+id).data("type",type);
-    $("#"+id).data("enumerations",enumerations);
-    $("#"+id).data("isOptional",optional);
-    $("#"+id).data("rootIsOptional",rootIsOptional);
-    $("#"+id).data("multipleValuesAllowed",multipleValuesAllowed);
-    $("#"+id).data("name",name);
+    $("#" + id)
+        .data("type", type)
+        .data("enumerations", enumerations)
+        .data("isOptional", optional)
+        .data("rootIsOptional", rootIsOptional)
+        .data("multipleValuesAllowed", multipleValuesAllowed)
+        .data("name", name);
     inputFields.push(id);
 }
 
@@ -525,21 +527,22 @@ function createJsonLd(id) {
     var msgs = [];
 
     inputFields.forEach(function (a) {
-        var compareId = a.slice(a.indexOf("_")+1,a.indexOf("_", a.indexOf("_") + 1) );
+        var compareId = a.slice(a.indexOf("_") + 1, a.indexOf("_", a.indexOf("_") + 1));
         if (compareId === id.toString()) { //only inputs from same panel
             allInputs.push(a);
         }
     });
 
     allInputs.forEach(function (a) {
-        var value = $("#" + a).val();
-        var path = $("#" + a).data("name");
-        var optional =$("#" + a).data("isOptional");
-        var rootOptional = $("#" + a).data("rootIsOptional");
-        if ((value === undefined || value === null || value === "" || value.length===0 || value.length==undefined) && (optional === false && rootOptional === false)) { //if variable is not optional but empty
+        var $inputField =  $("#" + a);
+        var value = $inputField.val();
+        var path = $inputField.data("name");
+        var optional = $inputField.data("isOptional");
+        var rootOptional = $inputField.data("rootIsOptional");
+        if ((value === undefined || value === null || value === "" || value.length === 0 || value.length == undefined) && (optional === false && rootOptional === false)) { //if variable is not optional but empty
             allRequired = false;
         }
-        if ((value != undefined && value != null && value != "" && value.length!=0 && value.length!=undefined) && rootOptional === true) {
+        if ((value != undefined && value != null && value != "" && value.length != 0 && value.length != undefined) && rootOptional === true) {
             //check if all other paths and sub paths are filled in - else false allRequiredPaths
             var bAllPaths = [];
             var bPaths = path.split('-');
@@ -548,20 +551,21 @@ function createJsonLd(id) {
                 bAllPaths.push((bPaths.join("-")))
             }
             allInputs.forEach(function (b) {
-                var bPath = $("#" + b).data("name");
-                console.log(bPath)
-                var bOptional = $("#" + b).data("isOptional");
-                var bRootOptional = $("#" + b).data("rootIsOptional");
+                var $inputElem = $("#" + b);
+                var bPath = $inputElem.data("name");
+                console.log(bPath);
+                var bOptional = $inputElem.data("isOptional");
+                var bRootOptional = $inputElem.data("rootIsOptional");
                 var len = (bPath.split("-"));
                 len = len.length;
-                var bValue = $("#" + b).val();
+                var bValue = $inputElem.val();
                 for (var z = 0; z < bAllPaths.length; z++) {
                     var len2 = bAllPaths[z].split("-");
                     len2 = len2.length;
                     if (bOptional == false && bRootOptional == true && (bPath.indexOf(bAllPaths[z]) >= 0) && len === len2 + 1) {
-                        if (bValue === undefined || bValue === "" || bValue == null || bValue.length===0 || bValue.length==undefined) {
-                           msgs.push(bPath)
-                           allRequiredPaths = false;
+                        if (bValue === undefined || bValue === "" || bValue == null || bValue.length === 0 || bValue.length == undefined) {
+                            msgs.push(bPath);
+                            allRequiredPaths = false;
                         }
                     }
                 }
@@ -576,7 +580,7 @@ function createJsonLd(id) {
                 allPaths.push(typePath)
             }
         });
-        if (!(value === undefined || value === null || value === "" || value.length===0 || value.length==undefined )) {
+        if (!(value === undefined || value === null || value === "" || value.length === 0 || value.length == undefined )) {
 
             var temp = path.split("-");
             while (temp.length > 1) {
@@ -606,7 +610,7 @@ function createJsonLd(id) {
             send_snackbarMSG("Please fill in all required fields", 3000);
         } else {
             msgs = htmlList(unique(msgs));
-            send_snackbarMSG("Please also fill in <ul>" + msgs.join("")+"</ul", 3000 + (msgs.length - 1) * 1000);
+            send_snackbarMSG("Please also fill in <ul>" + msgs.join("") + "</ul>", 3000 + (msgs.length - 1) * 1000);
         }
         return null;
     }
@@ -651,12 +655,12 @@ function unique(list) {
     return result;
 }
 
-function htmlList(list){
-  var result = [];
-  $.each(list, function (i, e) {
-      result.push("<li>"+e + "</li> \n");
-  });
-  return result;
+function htmlList(list) {
+    var result = [];
+    $.each(list, function (i, e) {
+        result.push("<li>" + e + "</li> \n");
+    });
+    return result;
 }
 
 
@@ -689,7 +693,7 @@ function httpGet(url, callback) {
     httpGetHeaders(url, null, callback);
 }
 
-function httpGetHeaders(url, headers, callback){
+function httpGetHeaders(url, headers, callback) {
     $.ajax({
         type: 'GET',
         url: url,
