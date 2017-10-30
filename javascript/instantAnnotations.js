@@ -95,6 +95,20 @@ var saveBtn = {
                 $('#IA_preview_copy').click(function(){
                     copyStr(JSON.stringify(resp.jsonLd, null, 2));
                 });
+
+                $('#IA_JS_inject').after(
+                    '<div id="IA_JS_inject_area" style="display:none;">' +
+                    '<br/> Add this Javascript code to your Website: ' +
+                    '<pre id="IA_JS_inject_code"></pre>' +
+                    '<button class="btn btn-default" id="IA_inject_copy" style="float: right; position:relative;bottom:55px; right:5px "> <i class="material-icons">content_copy</i> Copy</button>' +
+                    '</div>'
+                );
+                var injectCode = createInjectionCodeForURL(saveRes[0]["UID"]);
+                $('#IA_inject_copy').click(function(){
+                    copyStr(injectCode);
+                });
+                $('#IA_JS_inject_code').html(injectCode);
+
                 $('#IA_JS_inject').click(function(){
                     if($('#IA_JS_inject_area').html()){
                         if($('#IA_JS_inject_area').css('display') === 'none'){
@@ -103,20 +117,7 @@ var saveBtn = {
                         else{
                             $('#IA_JS_inject_area').slideUp(200);
                         }
-                        return;
                     }
-                    $('#IA_JS_inject').after(
-                        '<div id="IA_JS_inject_area" style="display:none;">' +
-                        '<br/> Add this Javascript code to your Website: ' +
-                        '<pre id="IA_JS_inject_code"></pre>' +
-                        '<button class="btn btn-default" id="IA_inject_copy" style="float: right; position:relative;bottom:55px; right:5px "> <i class="material-icons">content_copy</i> Copy</button>' +
-                        '</div>'
-                    ).next("div").slideDown(200);
-                    var injectCode = createInjectionCodeForURL(saveRes[0]["UID"]);
-                    $('#IA_inject_copy').click(function(){
-                        copyStr(injectCode);
-                    });
-                    $('#IA_JS_inject_code').html(injectCode);
                 });
 
                 $('#IA_preview_textArea').html(syntaxHighlight(JSON.stringify(resp.jsonLd, null, 2)));
@@ -134,7 +135,12 @@ var saveBtn = {
                                             $.snackbar(snackBarOptions);
                                             $('#IA_toWebsite').append('to website <b>' + ele["name"] + (ele["domain"] ? ' (' + ele["domain"] + ')' : '') + '</b>');
                                             var newUrl = 'https://smtfy.it/' + newSaveRes[0]["UID"];
-                                            $('#IA_annUrl').html(newUrl).attr("href", newUrl)
+                                            $('#IA_annUrl').html(newUrl).attr("href", newUrl);
+                                            var newInjectCode = createInjectionCodeForURL(newSaveRes[0]["UID"]);
+                                            $('#IA_inject_copy').click(function(){
+                                                copyStr(newInjectCode);
+                                            });
+                                            $('#IA_JS_inject_code').html(newInjectCode);
                                         }
                                         else {
                                             snackBarOptions["content"] = 'Failed to save the annotation to: ' + ele["name"] + ' (' + ele["domain"] + ')';
@@ -168,6 +174,19 @@ var saveBtn = {
                 else {
                     addWebsites();
                 }
+
+                var loginOnEnter = function(event){
+                    if (event.keyCode === 13) {
+                        $("#IA_loginBtn").click();
+                    }
+                };
+
+                $("#IA_username").keyup(function(event) {
+                    loginOnEnter(event);
+                });
+                $("#IA_password").keyup(function(event) {
+                    loginOnEnter(event);
+                });
 
                 $('#IA_saveModal')
                     .modal()
@@ -657,8 +676,8 @@ function createInjectionCodeForURL(UID) {
     var code = "function appendAnnotation() {\n" +
         "\tvar element = document.createElement('script');\n" +
         "\telement.type = 'application/ld+json';\n" +
-        "    element.text = this.responseText;\n" +
-        "    document.querySelector('head').appendChild(element);\n" +
+        "\telement.text = this.responseText;\n" +
+        "\tdocument.querySelector('head').appendChild(element);\n" +
         "}\n" +
         "var request = new XMLHttpRequest();\n" +
         "request.onload = appendAnnotation;\n" +
