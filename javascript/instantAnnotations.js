@@ -10,13 +10,13 @@ var inputFields = [];
 var semantifyUrl = "https://staging.semantify.it";
 //semantifyUrl = "http://localhost:8081";
 
-var saveApiKey = "Sy5Zx9h6b";
+var saveApiKey = "ryqbX5NA-";
 var semantifyToken;
 
 var copyBtn = {
     "name": "Copy",
     "icon": "content_copy",
-    "json": true,
+    "createJsonLD": true,
     "onclick": function (resp) {
         console.log("Copy");
         if (resp.jsonLd)
@@ -27,7 +27,6 @@ var copyBtn = {
 var clearBtn = {
     "name": "Clear",
     "icon": "delete",
-    "json": false,
     "onclick": function (resp) {
         console.log("Clear");
         inputFields.forEach(function (i) {
@@ -42,7 +41,7 @@ var clearBtn = {
 var saveBtn = {
     "name": "Save",
     "icon": "backup",
-    "json": true,
+    "createJsonLD": true,
     "onclick": function (resp) {
         if (!resp.jsonLd)
             return;
@@ -74,11 +73,15 @@ var saveBtn = {
                     '<div class="modal-content">' +
                     '<div class="modal-header">' +
                     '<button type="button" class="close" data-dismiss="modal">&times;</button>' +
-                    '<h4 class="modal-title">Saved Annotation</h4>' +
+                    '<h3 class="modal-title">Successfully saved JSON-LD annotation!</h3>' +
                     '</div>' +
                     '<div class="modal-body">' +
-                    'Saved annotation "' + saveRes[0]["name"] + '" <div id="IA_toWebsite" style="display: inline"></div> at: <a id="IA_annUrl" href="' + annUrl + '">' + annUrl + '</a> <br/><br/>' +
-                    '<a href="https://github.com/semantifyit/semantify-injection-js-sample">How do i get this annotation into my website?</a> <br/><br/><br/>' +
+                    '<pre id="IA_preview_textArea" style="max-height: 300px;"></pre>' +
+                    '<button class="btn btn-default" id="IA_preview_copy" style="float: right; position:relative;bottom:55px; right:5px "> <i class="material-icons">content_copy</i> Copy</button>' +
+                    '<br/>'+
+                    'Saved annotation "<b>' + saveRes[0]["name"] + '" </b><div id="IA_toWebsite" style="display: inline"></div> at: <a target="_blank" id="IA_annUrl" href="' + annUrl + '">' + annUrl + '</a> <br/><br/>' +
+                    '<button class="btn btn-default" style="margin:0; padding: 2px; text-transform:none; font-weight:normal" id="IA_JS_inject"><span class="caret"/>  How do i get this annotation into my website?</button>' +
+                    '<br/><br/><br/>' +
                     '<div id="IA_loginSection">' +
                     '</div>' +
                     '<div class="modal-footer">' +
@@ -88,7 +91,35 @@ var saveBtn = {
                     '</div>' +
                     '</div>'
                 );
+                $('#IA_preview_copy').click(function(){
+                    copyStr(JSON.stringify(resp.jsonLd, null, 2));
+                });
+                $('#IA_JS_inject').click(function(){
+                    if($('#IA_JS_inject_area').html()){
+                        if($('#IA_JS_inject_area').css('display') === 'none'){
+                            $('#IA_JS_inject_area').slideDown(200);
+                        }
+                        else{
+                            $('#IA_JS_inject_area').slideUp(200);
+                        }
+                        return;
+                    }
 
+                    $('#IA_JS_inject').after(
+                        '<div id="IA_JS_inject_area">' +
+                        '<br/> Add this Javascript code to your Website: ' +
+                        '<pre id="IA_JS_inject_code"></pre>' +
+                        '<button class="btn btn-default" id="IA_inject_copy" style="float: right; position:relative;bottom:55px; right:5px "> <i class="material-icons">content_copy</i> Copy</button>' +
+                        '</div>'
+                    );
+                    var injectCode = createInjectionCodeForURL(saveRes[0]["UID"]);
+                    $('#IA_inject_copy').click(function(){
+                        copyStr(injectCode);
+                    });
+                    $('#IA_JS_inject_code').html(injectCode);
+                });
+
+                $('#IA_preview_textArea').html(syntaxHighlight(JSON.stringify(resp.jsonLd, null, 2)));
                 var addWebsites = function () {
                     httpGetHeaders(semantifyUrl + "/api/website", {'Authorization': 'Bearer ' + semantifyToken}, function (websiteRes) {
                         if (websiteRes) {
@@ -101,7 +132,7 @@ var saveBtn = {
                                         if (newSaveRes) {
                                             snackBarOptions["content"] = 'Saved the annotation to: ' + ele["name"] + ' (' + ele["domain"] + ')';
                                             $.snackbar(snackBarOptions);
-                                            $('#IA_toWebsite').append('to website ' + ele["name"] + ' (' + ele["domain"] + ')');
+                                            $('#IA_toWebsite').append('to website <b>' + ele["name"] + (ele["domain"] ? ' (' + ele["domain"] + ')' : '') + '</b>');
                                             var newUrl = 'https://smtfy.it/' + newSaveRes[0]["UID"];
                                             $('#IA_annUrl').html(newUrl).attr("href", newUrl)
                                         }
@@ -120,11 +151,14 @@ var saveBtn = {
                         }
                     });
                 };
+                //var str = createInjectionCodeForURL(UID);
 
                 if (!semantifyToken) {
                     $('#IA_loginSection').append(
                         '<p>Want to save this Annotation to your Semantify.it account?</p>' +
-                        '<button type="button" class="btn button-sti-red" id="IA_loginBtn">Login</button>' +
+                        '<button type="button" class="btn button-sti-red" id="IA_loginBtn" style="margin:0 10px 0 0">Login</button>' +
+                        //style on login btn is because the icon makes the button larger
+                        '<button type="button" class="btn button-sti-red" id="IA_registerBtn" style="padding:6px 30px" onclick=" window.open(\'https://semantify.it/register\',\'_blank\')" title="Register at semantify.it"> <i class="material-icons">open_in_new</i>  Register</button>' +
                         '<div id="IA_credentialsSection" hidden>' +
                         '<input type="text" class="form-control" id="IA_username" placeholder="Username/Email" title="Username/Email">' +
                         '<input type="password" class="form-control" id="IA_password" placeholder="Password" title="Password">' +
@@ -175,7 +209,7 @@ var saveBtn = {
 var previewBtn = {
     "name": "Preview",
     "icon": "code",
-    "json": true,
+    "createJsonLD": true,
     "onclick": function (resp) {
         if (resp.jsonLd === null) {
             return;
@@ -207,7 +241,8 @@ var previewBtn = {
     }
 };
 
-var defaultBtns = [clearBtn, copyBtn, previewBtn, saveBtn];
+//var defaultBtns = [clearBtn, copyBtn, previewBtn, saveBtn];
+var defaultBtns = [clearBtn, saveBtn];
 
 getClassesJson();
 
@@ -343,7 +378,7 @@ function addBox($jqueryElement, myPanelId, ds, buttons) {
                 var onclick = buttons[j]["onclick"];
                 var additionalClasses = buttons[j]["additionalClasses"];
                 var icon = buttons[j].hasOwnProperty("icon") ? buttons[j]["icon"] : null;
-                var json = buttons[j]["json"];
+                var createJsonLD = !!buttons[j]["createJsonLD"];    // default is false
 
                 $('#panel-footer-' + myPanelId).append(
                     '<button class="btn button-sti-red" id="panel-footer-btn-' + name + '-' + myPanelId + '" style="margin: 5px 5px; padding: 10px 10px" ' + (additionalClasses ? additionalClasses : "") + ' title="' + name + '" >' +
@@ -354,7 +389,7 @@ function addBox($jqueryElement, myPanelId, ds, buttons) {
                 $('#panel-footer-btn-' + name + '-' + myPanelId)
                     .click(function () {
                         onclick({
-                            "jsonLd": json ? createJsonLd(arg) : null,
+                            "jsonLd": createJsonLD ? createJsonLd(arg) : null,
                             "jsonWarning": "",
                             "dsID": "",
                             "panelId": arg
@@ -534,7 +569,7 @@ function createJsonLd(id) {
     });
 
     allInputs.forEach(function (a) {
-        var $inputField =  $("#" + a);
+        var $inputField = $("#" + a);
         var value = $inputField.val();
         var path = $inputField.data("name");
         var optional = $inputField.data("isOptional");
@@ -616,12 +651,25 @@ function createJsonLd(id) {
     }
 }
 
+function createInjectionCodeForURL(UID) {
+    var code = "function appendAnnotation() {\n" +
+        "\tvar element = document.createElement('script');\n" +
+        "\telement.type = 'application/ld+json';\n" +
+        "    element.text = this.responseText;\n" +
+        "    document.querySelector('head').appendChild(element);\n" +
+        "}\n" +
+        "var request = new XMLHttpRequest();\n" +
+        "request.onload = appendAnnotation;\n" +
+        'request.open("get", "https://smtfy.it/' + UID + '", true);\n' +
+        "request.send();";
+    return code;
+}
 
 function copyStr(str) {
-    var dummy = document.createElement("input");
+    var dummy = document.createElement("textarea");
     document.body.appendChild(dummy);
     dummy.setAttribute("id", "dummy_id");
-    dummy.setAttribute('value', str);
+    dummy.value = str;
     dummy.select();
     document.execCommand("copy");
     document.body.removeChild(dummy);
