@@ -41,6 +41,7 @@ var clearBtn = {
 var saveBtn = {
     "name": "Save",
     "icon": "backup",
+    "onlyIcon": false,
     "createJsonLD": true,
     "onclick": function (resp) {
         if (!resp.jsonLd)
@@ -104,14 +105,13 @@ var saveBtn = {
                         }
                         return;
                     }
-
                     $('#IA_JS_inject').after(
-                        '<div id="IA_JS_inject_area">' +
+                        '<div id="IA_JS_inject_area" style="display:none;">' +
                         '<br/> Add this Javascript code to your Website: ' +
                         '<pre id="IA_JS_inject_code"></pre>' +
                         '<button class="btn btn-default" id="IA_inject_copy" style="float: right; position:relative;bottom:55px; right:5px "> <i class="material-icons">content_copy</i> Copy</button>' +
                         '</div>'
-                    );
+                    ).next("div").slideDown(200);
                     var injectCode = createInjectionCodeForURL(saveRes[0]["UID"]);
                     $('#IA_inject_copy').click(function(){
                         copyStr(injectCode);
@@ -379,10 +379,12 @@ function addBox($jqueryElement, myPanelId, ds, buttons) {
                 var additionalClasses = buttons[j]["additionalClasses"];
                 var icon = buttons[j].hasOwnProperty("icon") ? buttons[j]["icon"] : null;
                 var createJsonLD = !!buttons[j]["createJsonLD"];    // default is false
+                var onlyIcon = buttons[j]["onlyIcon"] !== false;    //default is true
 
                 $('#panel-footer-' + myPanelId).append(
                     '<button class="btn button-sti-red" id="panel-footer-btn-' + name + '-' + myPanelId + '" style="margin: 5px 5px; padding: 10px 10px" ' + (additionalClasses ? additionalClasses : "") + ' title="' + name + '" >' +
                     (icon ? '<i class="material-icons">' + icon + '</i>' : name) +
+                    (onlyIcon ? '' : ' ' + name) +
                     '</button>'
                 );
 
