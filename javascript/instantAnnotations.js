@@ -400,7 +400,7 @@ function addBox($jqueryElement, myPanelId, ds, buttons,sub) {
 
         $('#panel-body-opt-' + myPanelId).slideUp(0);
         if(sub===true){
-          var subClasses=getSubClasses(dsType,treeJson["subClasses"]);
+          var subClasses=getSubClasses(dsType,treeJson["subClasses"]).sort();
           $("#panel-body-" + myPanelId).append('<select name="select" class="form-control input-myBackground input-mySelect" id="' + "sub_"+myPanelId + '" title="Select a sub-class if you want to specify further">');
           var dropdown = $('#' + 'sub_'+myPanelId);
           dropdown.append('<option value="">Default: ' + dsType + '</option>');
@@ -634,7 +634,6 @@ function createJsonLd(id) {
             allInputs.forEach(function (b) {
                 var $inputElem = $("#" + b);
                 var bPath = $inputElem.data("name");
-                console.log(bPath);
                 var bOptional = $inputElem.data("isOptional");
                 var bRootOptional = $inputElem.data("rootIsOptional");
                 var len = (bPath.split("-"));
@@ -753,7 +752,6 @@ function getSubClasses(dsType,tree){
     }
   });
   if(found){
-    console.log(result)
     return result;
   }else{
     for (var i=0; i< tree.length;i++){
@@ -761,6 +759,7 @@ function getSubClasses(dsType,tree){
     }
   }
 }
+
 
 function unique(list) {
     var result = [];
