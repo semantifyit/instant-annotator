@@ -755,7 +755,7 @@ function getSubClasses(dsType,tree){
     return result;
   }else{
     for (var i=0; i< tree.length;i++){
-      getSubClasses(dsType,tree[i]["subClasses"]);
+      return getSubClasses(dsType,tree[i]["subClasses"]);
     }
   }
 }
