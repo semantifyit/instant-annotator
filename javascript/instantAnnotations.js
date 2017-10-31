@@ -1,6 +1,8 @@
 var allDs;
 var classesJson;
 var classesReady = false;
+var treeJson;
+var treeReady = false;
 var panelId = 0;
 
 var panelRoots = [];
@@ -264,12 +266,14 @@ var previewBtn = {
 var defaultBtns = [clearBtn, saveBtn];
 
 getClassesJson();
+getTreeJson();
 
 $('.IA_Box').each(function () {
     var dsId = $(this).data("dsid");
     var dsHash = $(this).data("dshash");
     var dsName = $(this).data("dsname");
     var buttonsChoise = $(this).data("btns");
+    var sub = $(this).data("sub");
     var buttons;
     switch (buttonsChoise) {
         case "no" :
@@ -289,20 +293,20 @@ $('.IA_Box').each(function () {
     (function (id, $jqueryElement) {
         if (dsId) {
             httpGet(semantifyUrl + "/api/domainSpecification/" + dsId, function (ds) {
-                addBox($jqueryElement, id, ds, buttons);
+                addBox($jqueryElement, id, ds, buttons,sub);
             });
         }
         else if (dsHash) {
             httpGet(semantifyUrl + "/api/domainSpecification/hash/" + dsHash, function (ds) {
-                addBox($jqueryElement, id, ds, buttons);
+                addBox($jqueryElement, id, ds, buttons,sub);
             });
         }
         else if (dsName) {
             httpGet(semantifyUrl + "/api/domainSpecification/searchName/" + dsName, function (dsList) {
-                addBox($jqueryElement, id, dsList[0], buttons);
+                addBox($jqueryElement, id, dsList[0], buttons,sub);
             });
         }
-    }(panelId, $(this)));
+    }(panelId, $(this),sub));
 
     panelId++;
 });
@@ -315,10 +319,17 @@ function getClassesJson() {
     });
 }
 
-function addBox($jqueryElement, myPanelId, ds, buttons) {
-    if (!(classesReady)) {
+function getTreeJson() {
+    httpGet("https://semantify.it/assets/data/3.3/classTree.json", function (data) {
+        treeJson = data;
+        treeReady = true;
+    });
+}
+
+function addBox($jqueryElement, myPanelId, ds, buttons,sub) {
+    if (!(classesReady)||!(treeReady)) {
         setTimeout(function () {
-            addBox($jqueryElement, myPanelId, ds, buttons);
+            addBox($jqueryElement, myPanelId, ds, buttons,sub);
         }, 100);
         return;
     }
@@ -328,6 +339,7 @@ function addBox($jqueryElement, myPanelId, ds, buttons) {
     var curDs = ds["content"];
     var dsName = (title ? title : (curDs === undefined ? "DS not found" : curDs["schema:name"]));
     var dsType = curDs["dsv:class"][0]["schema:name"];
+
 
     var footer = (buttons && buttons.length > 0 ? '<div class="panel-footer text-center" id="panel-footer-' + myPanelId + '"></div>' : '');      //only display footer if there are some buttons
     $jqueryElement.append(
@@ -387,7 +399,16 @@ function addBox($jqueryElement, myPanelId, ds, buttons) {
         });
 
         $('#panel-body-opt-' + myPanelId).slideUp(0);
-
+        if(sub===true){
+          var subClasses=getSubClasses(dsType,treeJson["subClasses"]);
+          $("#panel-body-" + myPanelId).append('<select name="select" class="form-control input-myBackground input-mySelect" id="' + "sub_"+myPanelId + '" title="Select a sub-class if you want to specify further">');
+          var dropdown = $('#' + 'sub_'+myPanelId);
+          dropdown.append('<option value="">Default: ' + dsType + '</option>');
+          subClasses.forEach(function (e) {
+              dropdown.append('<option value="' + e + '">' + e + '</option>');
+          });
+          dropdown.append('</select>');
+        }
     }
 
     for (var j in buttons) {
@@ -563,6 +584,10 @@ function createJsonLd(id) {
             schemaName = t["root"]
         }
     });
+    var selected=$('#'+"sub_"+id).val();
+    if(selected!=undefined && selected !="" && selected != null){
+      schemaName=selected;
+    }
     var jsonDs;
     var validPaths = [];
     var allPaths = [];
@@ -714,6 +739,27 @@ function syntaxHighlight(json) {
         }
         return '<span class="' + cls + '">' + match + '</span>';
     });
+}
+
+function getSubClasses(dsType,tree){
+  var result=[];
+  var found=false;
+  tree.forEach(function(n){
+    if(n["name"]==dsType){
+      found=true;
+      n["subClasses"].forEach(function(s){
+          result.push(s["name"]);
+        });
+    }
+  });
+  if(found){
+    console.log(result)
+    return result;
+  }else{
+    for (var i=0; i< tree.length;i++){
+      getSubClasses(dsType,tree[i]["subClasses"]);
+    }
+  }
 }
 
 function unique(list) {
