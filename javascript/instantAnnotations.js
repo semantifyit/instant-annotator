@@ -1,3 +1,5 @@
+"use strict";
+
 var allDs;
 var classesJson;
 var classesReady = false;
