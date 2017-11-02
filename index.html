@@ -45,9 +45,6 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css">
         <script defer src="./javascript/instantAnnotations.js"></script>
 
-        <!-- throws error in console
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-history/1.9/jquery.history.min.js"></script>
-        -->
         <title>Instant Annotation Demo</title>
     </head>
     <body>
@@ -59,7 +56,15 @@
         <div class="row">
             <div class="IA_Box" data-dshash="Z1wBPe7" data-btns="default" data-title="Veranstaltung"></div>
             <div class="IA_Box" data-dshash="Z1wBPe7" data-sub="true" data-btns="preview+clear+save+copy"></div>
-            <div class="IA_Box" data-dshash="Z1wBPe7" data-sub="true"></div>
+            <div class="IA_Box" data-dshash="Z1wBPe7" data-sub="true">
+                <script>
+                    function downloadClick(response){
+                        console.log("Download");
+                        console.log(response);
+                    }
+                </script>
+                <div class="IA_Btn" data-name="Download" data-icon="file_download" data-createjsonld="true" data-onclick=downloadClick></div>
+            </div>
         </div>
     </div>
 

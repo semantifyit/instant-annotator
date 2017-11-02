@@ -81,7 +81,7 @@ var saveBtn = {
                     '<div class="modal-body">' +
                     '<pre id="IA_preview_textArea" style="max-height: 300px;"></pre>' +
                     '<button class="btn btn-default" id="IA_preview_copy" style="float: right; position:relative;bottom:55px; right:5px "> <i class="material-icons">content_copy</i> Copy</button>' +
-                    '<br/>'+
+                    '<br/>' +
                     'Saved annotation "<b>' + saveRes[0]["name"] + '" </b><div id="IA_toWebsite" style="display: inline"></div> at: <a target="_blank" id="IA_annUrl" href="' + annUrl + '">' + annUrl + '</a> <br/><br/>' +
                     '<button class="btn btn-default" style="margin:0; padding: 2px; text-transform:none; font-weight:normal" id="IA_JS_inject"><span class="caret"/>  How do i get this annotation into my website?</button>' +
                     '<br/><br/><br/>' +
@@ -94,7 +94,7 @@ var saveBtn = {
                     '</div>' +
                     '</div>'
                 );
-                $('#IA_preview_copy').click(function(){
+                $('#IA_preview_copy').click(function () {
                     copyStr(JSON.stringify(resp.jsonLd, null, 2));
                 });
 
@@ -106,17 +106,17 @@ var saveBtn = {
                     '</div>'
                 );
                 var injectCode = createInjectionCodeForURL(saveRes[0]["UID"]);
-                $('#IA_inject_copy').click(function(){
+                $('#IA_inject_copy').click(function () {
                     copyStr(injectCode);
                 });
                 $('#IA_JS_inject_code').html(injectCode);
 
-                $('#IA_JS_inject').click(function(){
-                    if($('#IA_JS_inject_area').html()){
-                        if($('#IA_JS_inject_area').css('display') === 'none'){
+                $('#IA_JS_inject').click(function () {
+                    if ($('#IA_JS_inject_area').html()) {
+                        if ($('#IA_JS_inject_area').css('display') === 'none') {
                             $('#IA_JS_inject_area').slideDown(200);
                         }
-                        else{
+                        else {
                             $('#IA_JS_inject_area').slideUp(200);
                         }
                     }
@@ -139,7 +139,7 @@ var saveBtn = {
                                             var newUrl = 'https://smtfy.it/' + newSaveRes[0]["UID"];
                                             $('#IA_annUrl').html(newUrl).attr("href", newUrl);
                                             var newInjectCode = createInjectionCodeForURL(newSaveRes[0]["UID"]);
-                                            $('#IA_inject_copy').click(function(){
+                                            $('#IA_inject_copy').click(function () {
                                                 copyStr(newInjectCode);
                                             });
                                             $('#IA_JS_inject_code').html(newInjectCode);
@@ -177,16 +177,16 @@ var saveBtn = {
                     addWebsites();
                 }
 
-                var loginOnEnter = function(event){
+                var loginOnEnter = function (event) {
                     if (event.keyCode === 13) {
                         $("#IA_loginBtn").click();
                     }
                 };
 
-                $("#IA_username").keyup(function(event) {
+                $("#IA_username").keyup(function (event) {
                     loginOnEnter(event);
                 });
-                $("#IA_password").keyup(function(event) {
+                $("#IA_password").keyup(function (event) {
                     loginOnEnter(event);
                 });
 
@@ -265,70 +265,88 @@ var previewBtn = {
 //var defaultBtns = [clearBtn, copyBtn, previewBtn, saveBtn];
 var defaultBtns = [clearBtn, saveBtn];
 
-getClassesJson();
-getTreeJson();
+IA_Init();
 
-$('.IA_Box').each(function () {
-    var dsId = $(this).data("dsid");
-    var dsHash = $(this).data("dshash");
-    var dsName = $(this).data("dsname");
-    var buttonsChoise = $(this).data("btns");
-    var sub = $(this).data("sub");
-    var buttons=[];
-    switch (buttonsChoise) {
-        case "no" :
-            buttons = [];
-            break;
-        case "default":
-        case undefined:
-        case null:
-            buttons = defaultBtns;
-            break;
-        default:
-            var buttonsArray=buttonsChoise.split("+");
-            buttonsArray.forEach(function(b){
-              switch(b){
-                case "preview":
-                  buttons.push(previewBtn);
-                  break;
-                case "clear":
-                  buttons.push(clearBtn);
-                  break;
-                case "save":
-                  buttons.push(saveBtn);
-                  break;
-                case "copy":
-                  buttons.push(copyBtn);
-                  break;
-              }
-            });
-    }
-    $(this).append(
-        '<div id="loading' + panelId + '" class="col-lg-3 col-md-4 col-sm-6 text-center" style="margin: 10px; padding: 10px; background: white; border-radius: 10px;">' +
-        '<img src="' + semantifyUrl + '/images/loading.gif">' +
-        '</div>'
-    );
+function IA_Init() {
+    getClassesJson();
+    getTreeJson();
 
-    (function (id, $jqueryElement) {
-        if (dsId) {
-            httpGet(semantifyUrl + "/api/domainSpecification/" + dsId, function (ds) {
-                addBox($jqueryElement, id, ds, buttons,sub);
-            });
-        }
-        else if (dsHash) {
-            httpGet(semantifyUrl + "/api/domainSpecification/hash/" + dsHash, function (ds) {
-                addBox($jqueryElement, id, ds, buttons,sub);
-            });
-        }
-        else if (dsName) {
-            httpGet(semantifyUrl + "/api/domainSpecification/searchName/" + dsName, function (dsList) {
-                addBox($jqueryElement, id, dsList[0], buttons,sub);
-            });
-        }
-    }(panelId, $(this),sub));
+    $('.IA_Box').each(function () {
+        var dsId = $(this).data("dsid");
+        var dsHash = $(this).data("dshash");
+        var dsName = $(this).data("dsname");
+        var buttonsChoice = $(this).data("btns");
+        var sub = $(this).data("sub");
 
-    panelId++;
-});
+        var buttons = [];
+        switch (buttonsChoice) {
+            case "no" :
+                buttons = [];
+                break;
+            case "default":
+            case undefined:
+            case null:
+                buttons = defaultBtns.slice(); //to pass by value and not reference
+                break;
+            default:
+                var buttonsArray = buttonsChoice.split("+");
+                buttonsArray.forEach(function (b) {
+                    switch (b) {
+                        case "preview":
+                            buttons.push(previewBtn);
+                            break;
+                        case "clear":
+                            buttons.push(clearBtn);
+                            break;
+                        case "save":
+                            buttons.push(saveBtn);
+                            break;
+                        case "copy":
+                            buttons.push(copyBtn);
+                            break;
+                    }
+                });
+        }
+
+        $(this).children('div').each(function(){
+            if($(this).hasClass('IA_Btn')){
+                var button = {};
+                button["name"] = $(this).data("name");
+                button["icon"] = $(this).data("icon");
+                button["createJsonLD"] = !!$(this).data("createjsonld");
+                button["onclick"] =  window[$(this).data("onclick")];
+                console.log("push");
+            }
+        });
+
+        $(this).append(
+            '<div id="loading' + panelId + '" class="col-lg-3 col-md-4 col-sm-6 text-center" style="margin: 10px; padding: 10px; background: white; border-radius: 10px;">' +
+            '<img src="' + semantifyUrl + '/images/loading.gif">' +
+            '</div>'
+        );
+
+        (function (id, $jqueryElement) {
+            if (dsId) {
+                httpGet(semantifyUrl + "/api/domainSpecification/" + dsId, function (ds) {
+                    addBox($jqueryElement, id, ds, buttons, sub);
+                });
+            }
+            else if (dsHash) {
+                httpGet(semantifyUrl + "/api/domainSpecification/hash/" + dsHash, function (ds) {
+                    addBox($jqueryElement, id, ds, buttons, sub);
+                });
+            }
+            else if (dsName) {
+                httpGet(semantifyUrl + "/api/domainSpecification/searchName/" + dsName, function (dsList) {
+                    addBox($jqueryElement, id, dsList[0], buttons, sub);
+                });
+            }
+        }(panelId, $(this), sub));
+
+        panelId++;
+    });
+
+}
 
 function getClassesJson() {
     //httpGet(semantifyUrl+"/assets/data/latest/classes.json", function (data) {
@@ -345,10 +363,10 @@ function getTreeJson() {
     });
 }
 
-function addBox($jqueryElement, myPanelId, ds, buttons,sub) {
-    if (!(classesReady)||!(treeReady)) {
+function addBox($jqueryElement, myPanelId, ds, buttons, sub) {
+    if (!(classesReady) || !(treeReady)) {
         setTimeout(function () {
-            addBox($jqueryElement, myPanelId, ds, buttons,sub);
+            addBox($jqueryElement, myPanelId, ds, buttons, sub);
         }, 100);
         return;
     }
@@ -418,15 +436,15 @@ function addBox($jqueryElement, myPanelId, ds, buttons,sub) {
         });
 
         $('#panel-body-opt-' + myPanelId).slideUp(0);
-        if(sub===true){
-          var subClasses=getSubClasses(getObject(dsType,treeJson)).sort();
-          $("#panel-body-" + myPanelId).append('<select name="select" class="form-control input-myBackground input-mySelect" id="' + "sub_"+myPanelId + '" title="Select a sub-class if you want to specify further">');
-          var dropdown = $('#' + 'sub_'+myPanelId);
-          dropdown.append('<option value="">Default: ' + dsType + '</option>');
-          subClasses.forEach(function (e) {
-              dropdown.append('<option value="' + e + '">' + e + '</option>');
-          });
-          dropdown.append('</select>');
+        if (sub === true) {
+            var subClasses = getSubClasses(getObject(dsType, treeJson)).sort();
+            $("#panel-body-" + myPanelId).append('<select name="select" class="form-control input-myBackground input-mySelect" id="' + "sub_" + myPanelId + '" title="Select a sub-class if you want to specify further">');
+            var dropdown = $('#' + 'sub_' + myPanelId);
+            dropdown.append('<option value="">Default: ' + dsType + '</option>');
+            subClasses.forEach(function (e) {
+                dropdown.append('<option value="' + e + '">' + e + '</option>');
+            });
+            dropdown.append('</select>');
         }
     }
 
@@ -603,9 +621,9 @@ function createJsonLd(id) {
             schemaName = t["root"]
         }
     });
-    var selected=$('#'+"sub_"+id).val();
-    if(selected!=undefined && selected !="" && selected != null){
-      schemaName=selected;
+    var selected = $('#' + "sub_" + id).val();
+    if (selected != undefined && selected != "" && selected != null) {
+        schemaName = selected;
     }
     var jsonDs;
     var validPaths = [];
@@ -759,23 +777,25 @@ function syntaxHighlight(json) {
     });
 }
 
-function getObject(dsType,tree){
-    if(tree.name === dsType) { return tree; }
-    for(var i =0; i<tree.subClasses.length;i++) {
-        var result=getObject(dsType,tree.subClasses[i]);
-        if(result){
-          return result;
+function getObject(dsType, tree) {
+    if (tree.name === dsType) {
+        return tree;
+    }
+    for (var i = 0; i < tree.subClasses.length; i++) {
+        var result = getObject(dsType, tree.subClasses[i]);
+        if (result) {
+            return result;
         }
     }
     return null;
-};
+}
 
-function getSubClasses(tree){
-  result=[];
-  tree.subClasses.forEach(function(s){
-    result.push(s.name);
-  })
-  return result;
+function getSubClasses(tree) {
+    var result = [];
+    tree.subClasses.forEach(function (s) {
+        result.push(s.name);
+    });
+    return result;
 }
 
 
