@@ -274,7 +274,7 @@ $('.IA_Box').each(function () {
     var dsName = $(this).data("dsname");
     var buttonsChoise = $(this).data("btns");
     var sub = $(this).data("sub");
-    var buttons;
+    var buttons=[];
     switch (buttonsChoise) {
         case "no" :
             buttons = [];
@@ -283,6 +283,25 @@ $('.IA_Box').each(function () {
         case undefined:
         case null:
             buttons = defaultBtns;
+            break;
+        default:
+            var buttonsArray=buttonsChoise.split("+");
+            buttonsArray.forEach(function(b){
+              switch(b){
+                case "preview":
+                  buttons.push(previewBtn);
+                  break;
+                case "clear":
+                  buttons.push(clearBtn);
+                  break;
+                case "save":
+                  buttons.push(saveBtn);
+                  break;
+                case "copy":
+                  buttons.push(copyBtn);
+                  break;
+              }
+            });
     }
     $(this).append(
         '<div id="loading' + panelId + '" class="col-lg-3 col-md-4 col-sm-6 text-center" style="margin: 10px; padding: 10px; background: white; border-radius: 10px;">' +
@@ -400,7 +419,7 @@ function addBox($jqueryElement, myPanelId, ds, buttons,sub) {
 
         $('#panel-body-opt-' + myPanelId).slideUp(0);
         if(sub===true){
-          var subClasses=getSubClasses(dsType,treeJson["subClasses"]).sort();
+          var subClasses=getSubClasses(getObject(dsType,treeJson)).sort();
           $("#panel-body-" + myPanelId).append('<select name="select" class="form-control input-myBackground input-mySelect" id="' + "sub_"+myPanelId + '" title="Select a sub-class if you want to specify further">');
           var dropdown = $('#' + 'sub_'+myPanelId);
           dropdown.append('<option value="">Default: ' + dsType + '</option>');
@@ -740,24 +759,23 @@ function syntaxHighlight(json) {
     });
 }
 
-function getSubClasses(dsType,tree){
-  var result=[];
-  var found=false;
-  tree.forEach(function(n){
-    if(n["name"]==dsType){
-      found=true;
-      n["subClasses"].forEach(function(s){
-          result.push(s["name"]);
-        });
+function getObject(dsType,tree){
+    if(tree.name === dsType) { return tree; }
+    for(var i =0; i<tree.subClasses.length;i++) {
+        var result=getObject(dsType,tree.subClasses[i]);
+        if(result){
+          return result;
+        }
     }
-  });
-  if(found){
-    return result;
-  }else{
-    for (var i=0; i< tree.length;i++){
-      return getSubClasses(dsType,tree[i]["subClasses"]);
-    }
-  }
+    return null;
+};
+
+function getSubClasses(tree){
+  result=[];
+  tree.subClasses.forEach(function(s){
+    result.push(s.name);
+  })
+  return result;
 }
 
 
