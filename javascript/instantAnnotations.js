@@ -347,7 +347,7 @@ function IA_Init() {
         }(panelId, $(this), sub));
 
         panelCount++;
-        panelId=panelId.slice(0, -1)+panelCount;
+        panelId="IAPanel"+panelCount;
 
     });
 
