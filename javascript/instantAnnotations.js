@@ -314,7 +314,6 @@ function IA_Init() {
                 button["name"] = $(this).data("name");
                 button["icon"] = $(this).data("icon");
                 button["onlyIcon"] = $(this).data("onlyIcon");
-                console.log(button["onlyIcon"]);
                 button["createJsonLD"] = !!$(this).data("createjsonld");
                 button["onclick"] =  window[$(this).data("onclick")];
                 buttons.push(button);
