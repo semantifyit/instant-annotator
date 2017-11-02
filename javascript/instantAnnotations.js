@@ -1,11 +1,12 @@
 "use strict";
 
-var allDs;
+
 var classesJson;
 var classesReady = false;
 var treeJson;
 var treeReady = false;
-var panelId = 0;
+var panelId = "IAPanel0";
+var panelCount=0;
 
 var panelRoots = [];
 var typeList = [];
@@ -264,7 +265,6 @@ var previewBtn = {
     }
 };
 
-//var defaultBtns = [clearBtn, copyBtn, previewBtn, saveBtn];
 var defaultBtns = [clearBtn, saveBtn];
 
 IA_Init();
@@ -283,7 +283,7 @@ function IA_Init() {
         var buttons = [];
         switch (buttonsChoice) {
             case "no" :
-                buttons = [];
+              buttons = [];
                 break;
             case "default":
             case undefined:
@@ -346,7 +346,9 @@ function IA_Init() {
             }
         }(panelId, $(this), sub));
 
-        panelId++;
+        panelCount++;
+        panelId=panelId.slice(0, -1)+panelCount;
+
     });
 
 }
@@ -485,8 +487,6 @@ function addBox($jqueryElement, myPanelId, ds, buttons, sub) {
 
 
 function insertInputField(panelId, name, desc, type, enumerations, panel, optional, rootIsOptional, multipleValuesAllowed) {
-    //var id = panelId + "_" + type + "_" + name + "_" + optional + "_" + rootIsOptional;
-    //id = id.replace(/:/g, "-").replace(/ /g, '');
     var id = "IA_" + panelId + "_" + name;
     var temp = false;
     if (rootIsOptional && !optional) {
@@ -628,20 +628,12 @@ function createJsonLd(id) {
     if (selected != undefined && selected != "" && selected != null) {
         schemaName = selected;
     }
-    var jsonDs;
     var validPaths = [];
     var allPaths = [];
     var resultJson = {
         "@context": "http://schema.org/",
         "@type": schemaName
     };
-    for (var i in allDs) {
-        if (allDs.hasOwnProperty(i))
-            if (allDs[i]["content"]["schema:name"] === dsName) {
-                jsonDs = allDs[i]["content"];
-                break;
-            }
-    }
     var allRequired = true; //variable gets false if an required field is empty
     var allRequiredPaths = true; //variable gets false if an optional field is filled in that has required properties
     var allInputs = []; //all input ids from same panel
