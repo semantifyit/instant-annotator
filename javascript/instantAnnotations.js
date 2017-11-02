@@ -315,7 +315,7 @@ function IA_Init() {
                 button["icon"] = $(this).data("icon");
                 button["createJsonLD"] = !!$(this).data("createjsonld");
                 button["onclick"] =  window[$(this).data("onclick")];
-                console.log("push");
+                buttons.push(button);
             }
         });
 
