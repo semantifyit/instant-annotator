@@ -15,6 +15,9 @@ var inputFields = [];
 var semantifyUrl = "https://staging.semantify.it";
 //semantifyUrl = "http://localhost:8081";
 
+var semantifyShortUrl = "https://smtfy.it/";
+semantifyShortUrl = "https://staging.semantify.it/api/annotation/short/";
+
 var saveApiKey = "ryqbX5NA-";
 var semantifyToken;
 
@@ -69,7 +72,7 @@ var saveBtn = {
                 snackBarOptions["content"] = "Successfully saved Annotation to semantify.it";
                 $.snackbar(snackBarOptions);
 
-                var annUrl = 'https://smtfy.it/' + saveRes[0]["UID"];
+                var annUrl = semantifyShortUrl + saveRes[0]["UID"];
                 var dummy = document.createElement("div");
                 document.body.appendChild(dummy);
                 dummy.setAttribute("id", "IA_preview_id");
@@ -139,7 +142,7 @@ var saveBtn = {
                                             snackBarOptions["content"] = 'Saved the annotation to: ' + ele["name"] + ' (' + ele["domain"] + ')';
                                             $.snackbar(snackBarOptions);
                                             $('#IA_toWebsite').append('to website <b>' + ele["name"] + (ele["domain"] ? ' (' + ele["domain"] + ')' : '') + '</b>');
-                                            var newUrl = 'https://smtfy.it/' + newSaveRes[0]["UID"];
+                                            var newUrl = semantifyShortUrl + newSaveRes[0]["UID"];
                                             $('#IA_annUrl').html(newUrl).attr("href", newUrl);
                                             var newInjectCode = createInjectionCodeForURL(newSaveRes[0]["UID"]);
                                             $('#IA_inject_copy').click(function () {
@@ -737,7 +740,7 @@ function createInjectionCodeForURL(UID) {
         "}\n" +
         "var request = new XMLHttpRequest();\n" +
         "request.onload = appendAnnotation;\n" +
-        'request.open("get", "https://smtfy.it/' + UID + '", true);\n' +
+        'request.open("get", ' + semantifyShortUrl + UID + '", true);\n' +
         "request.send();";
     return code;
 }
