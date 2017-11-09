@@ -85,3 +85,4 @@ The response contains the id of the box and the jsonLD if data-createJsonLD is s
                 <div class="IA_Btn" data-name="Close" data-icon="close" data-createjsonld="false" data-onclick=closeClick></div>
 </div>
 ```
+# [Example Web Page](https://semantifyit.github.io/ia)
