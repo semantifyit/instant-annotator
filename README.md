@@ -83,5 +83,5 @@ The response contains the id of the box and the jsonLD if data-createJsonLD is s
                 </script>
                 <div class="IA_Btn" data-name="Download" data-icon="file_download" data-createjsonld="true" data-onclick=downloadClick></div>
                 <div class="IA_Btn" data-name="Close" data-icon="close" data-createjsonld="false" data-onclick=closeClick></div>
-            </div>
+</div>
 ```
