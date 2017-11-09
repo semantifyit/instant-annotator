@@ -14,7 +14,33 @@ The instant-annotator is a leightweight editor from [semantify.it](www.semantify
 **BTNS**: The buttons (see below)<br />
 **TITLE**: The title of the box<br />
 
+#### Dependencies
+```html
+**javascript:**
+https://code.jquery.com/jquery-3.2.1.slim.min.js
+https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js
+https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js
+https://code.jquery.com/jquery-3.2.1.min.js
+https://cdnjs.cloudflare.com/ajax/libs/arrive/2.4.1/arrive.min.js
+https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js
+https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.9/js/ripples.js
+https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.9/js/material.min.js
+https://cdnjs.cloudflare.com/ajax/libs/snackbarjs/1.1.0/snackbar.min.js
+https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js
+https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js
+https://cdn.rawgit.com/ax5ui/ax5core/master/dist/ax5core.min.js
+https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js
 
+**css:**
+https://fonts.googleapis.com/css?family=Roboto:300,400,500,700
+https://fonts.googleapis.com/icon?family=Material+Icons
+https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css
+https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.9/css/ripples.min.css
+https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.9/css/bootstrap-material-design.min.css
+https://cdnjs.cloudflare.com/ajax/libs/snackbarjs/1.1.0/snackbar.min.css
+https://semantify.it/dashboard/assets/style.css
+https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css
+```
 # Hashes 
 - [Article](https://developers.google.com/search/docs/data-types/articles)
 :
