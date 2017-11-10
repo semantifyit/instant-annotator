@@ -43,19 +43,19 @@ https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/boot
 ```
 # Hashes 
 - [Article](https://developers.google.com/search/docs/data-types/articles)
-:
+:H1TlMn-4M1f
 
 - [Event](https://developers.google.com/search/docs/data-types/events)
-:
+:SyqlG3b4Mkf
 
 - [JobPosting](https://developers.google.com/search/docs/data-types/job-postings)
-:
+:rkhlM3-EGyM
 
 - [LocalBusiness](https://developers.google.com/search/docs/data-types/local-businesses)
-:
+:Byigf2ZEfJf
 
 - [Recipe](https://developers.google.com/search/docs/data-types/recipes)
-:
+:ry0lz3ZVf1G
 
 # Buttons
 - **clear**: Clears the all input fields.
