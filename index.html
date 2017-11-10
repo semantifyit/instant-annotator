@@ -16,11 +16,9 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/snackbarjs/1.1.0/snackbar.min.css">
         <!-- Style of this project -->
         <link rel="stylesheet" href="https://semantify.it/dashboard/assets/style.css"/>
-        <link rel="stylesheet" href="style/instantAnnotations.css"/>
         <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
-        <!-- Scripts -->
         <!-- jQuery Script -->
         <script
                 src="https://code.jquery.com/jquery-3.2.1.min.js"
@@ -52,26 +50,36 @@
 
     <br/>
     <div class="container">
-        <h1>Instant Annotation Demo</h1>
-        <div class="row">
-            <div class="IA_Box" data-dshash="Z1wBPe7" data-btns="default" data-title="Veranstaltung"></div>
-            <div class="IA_Box" data-dshash="Z1wBPe7" data-sub="true" data-btns="preview+clear+save+copy"></div>
-            <div class="IA_Box" data-dshash="Z1wBPe7" data-sub="true">
-                <script>
-                function downloadClick(response){
+    <h1>Instant Annotation Demo</h1>
+    <br/>
+    <h4>Confused or need help, check out the documentation on github:
+        <a target="_blank" href="https://github.com/semantifyit/instant_annotator">README</a>
+    </h4>
+    <br/>
+    <div class="row">
+        <div class="IA_Box" data-dshash="ry0lz3ZVf1G" data-btns="default" data-title="Veranstaltung"></div>
+        <div class="IA_Box" data-dshash="H1TlMn-4M1f" data-sub="true" data-btns="preview+clear+save+copy"></div>
+        <div class="IA_Box" data-dshash="rkhlM3-EGyM" data-sub="true">
+            <script>
+                function downloadClick(response) {
                     console.log("Download");
                     console.log(response);
                 }
-                function closeClick(response){
+                function closeClick(response) {
                     console.log("Close panel");
-                    $("#panel-"+response["panelId"]).hide( "slow");
+                    $("#panel-" + response["panelId"]).hide("slow");
                 }
-                </script>
-                <div class="IA_Btn" data-name="Download" data-icon="file_download" data-createjsonld="true" data-onclick=downloadClick></div>
-                <div class="IA_Btn" data-name="Close" data-icon="close" data-createjsonld="false" data-onclick=closeClick></div>
-            </div>
+            </script>
+            <div class="IA_Btn" data-name="Download" data-icon="file_download" data-createjsonld="true"
+                 data-onclick=downloadClick></div>
+            <div class="IA_Btn" data-name="Close" data-icon="close" data-createjsonld="false"
+                 data-onclick=closeClick></div>
         </div>
+        <div class="IA_Box" data-dshash="Byigf2ZEfJf" data-btns="default"></div>
+        <div class="IA_Box" data-dshash="SyqlG3b4Mkf" data-btns="default"></div>
     </div>
+</div>
+
 
     </body>
 

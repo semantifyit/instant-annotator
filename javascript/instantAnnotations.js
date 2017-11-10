@@ -1,24 +1,23 @@
 "use strict";
 
-
-var classesJson;
-var classesReady = false;
-var treeJson;
-var treeReady = false;
+var sdoProperties;
+var sdoPropertiesReady = false;
+var sdoClasses;
+var sdoClassesReady = false;
 var panelId = "IAPanel0";
-var panelCount=0;
+var panelCount = 0;
 
 var panelRoots = [];
 var typeList = [];
 var inputFields = [];
 
-var semantifyUrl = "https://staging.semantify.it";
+var semantifyUrl = "https://semantify.it";
 //semantifyUrl = "http://localhost:8081";
 
 var semantifyShortUrl = "https://smtfy.it/";
-semantifyShortUrl = "https://staging.semantify.it/api/annotation/short/";
+//semantifyShortUrl = "https://staging.semantify.it/api/annotation/short/";
 
-var saveApiKey = "ryqbX5NA-";
+var saveApiKey = "Hkqtxgmkz";
 var semantifyToken;
 
 var copyBtn = {
@@ -48,7 +47,7 @@ var clearBtn = {
 
 var saveBtn = {
     "name": "Save",
-    "icon": "backup",
+    "icon": "save", //backup
     "onlyIcon": false,
     "createJsonLD": true,
     "onclick": function (resp) {
@@ -58,7 +57,7 @@ var saveBtn = {
         var bulk = [];
         var toSend = {};
         toSend["content"] = resp.jsonLd;
-        //toSend["domainSpecification"] = dsId;
+        toSend["dsHash"] = resp.dsHash;
         bulk.push(toSend);
 
         var snackBarOptions = {
@@ -255,6 +254,7 @@ var previewBtn = {
             '</div>' +
             '<div class="modal-body">' +
             '<pre id="preview_textArea" style="max-height: 500px;"></pre>' +
+            '<button class="btn btn-default" id="IA_simple_preview_copy" style="float: right; position:relative;bottom:55px; right:5px "> <i class="material-icons">content_copy</i> Copy</button>' +
             '</div>' +
             '<div class="modal-footer">' +
             '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>' +
@@ -265,6 +265,9 @@ var previewBtn = {
         );
         $('#preview_textArea').html(syntaxHighlight(JSON.stringify(resp.jsonLd, null, 2)));
         $('#previewModal').modal();
+        $('#IA_simple_preview_copy').click(function () {
+            copyStr(JSON.stringify(resp.jsonLd, null, 2));
+        });
     }
 };
 
@@ -286,7 +289,7 @@ function IA_Init() {
         var buttons = [];
         switch (buttonsChoice) {
             case "no" :
-              buttons = [];
+                buttons = [];
                 break;
             case "default":
             case undefined:
@@ -313,14 +316,14 @@ function IA_Init() {
                 });
         }
 
-        $(this).children('div').each(function(){
-            if($(this).hasClass('IA_Btn')){
+        $(this).children('div').each(function () {
+            if ($(this).hasClass('IA_Btn')) {
                 var button = {};
                 button["name"] = $(this).data("name");
                 button["icon"] = $(this).data("icon");
                 button["onlyIcon"] = $(this).data("onlyIcon");
                 button["createJsonLD"] = !!$(this).data("createjsonld");
-                button["onclick"] =  window[$(this).data("onclick")];
+                button["onclick"] = window[$(this).data("onclick")];
                 buttons.push(button);
             }
         });
@@ -334,45 +337,48 @@ function IA_Init() {
         (function (id, $jqueryElement) {
             if (dsId) {
                 httpGet(semantifyUrl + "/api/domainSpecification/" + dsId, function (ds) {
+                    ds["hash"] = null;
                     addBox($jqueryElement, id, ds, buttons, sub);
                 });
             }
             else if (dsHash) {
                 httpGet(semantifyUrl + "/api/domainSpecification/hash/" + dsHash, function (ds) {
+                    ds["hash"] = dsHash;
                     addBox($jqueryElement, id, ds, buttons, sub);
                 });
             }
             else if (dsName) {
                 httpGet(semantifyUrl + "/api/domainSpecification/searchName/" + dsName, function (dsList) {
-                    addBox($jqueryElement, id, dsList[0], buttons, sub);
+                    var ds = dsList[0];
+                    ds["hash"] = null;
+                    addBox($jqueryElement, id, ds, buttons, sub);
                 });
             }
         }(panelId, $(this), sub));
 
         panelCount++;
-        panelId="IAPanel"+panelCount;
+        panelId = "IAPanel" + panelCount;
 
     });
 
 }
 
 function getClassesJson() {
-    //httpGet(semantifyUrl+"/assets/data/latest/classes.json", function (data) {
-    httpGet("https://semantify.it/assets/data/3.2/classes.json", function (data) {
-        classesJson = data;
-        classesReady = true;
+    httpGet("https://semantify.it/assets/data/latest/sdo_properties.min.json", function (data) {
+        sdoProperties = data;
+        sdoPropertiesReady = true;
     });
 }
 
 function getTreeJson() {
-    httpGet("https://semantify.it/assets/data/3.3/classTree.json", function (data) {
-        treeJson = data;
-        treeReady = true;
+    httpGet("https://semantify.it/assets/data/latest/sdo_classes.json", function (data) {
+        sdoClasses = data;
+        sdoClassesReady = true;
     });
 }
 
 function addBox($jqueryElement, myPanelId, ds, buttons, sub) {
-    if (!(classesReady) || !(treeReady)) {
+    if (!(sdoPropertiesReady) || !(sdoClassesReady)) {
         setTimeout(function () {
             addBox($jqueryElement, myPanelId, ds, buttons, sub);
         }, 100);
@@ -418,7 +424,7 @@ function addBox($jqueryElement, myPanelId, ds, buttons, sub) {
     });
 
     req_props.forEach(function (p) {
-        insertInputField(myPanelId, p["name"], getDesc(p["fatherType"], p["simpleName"]), p["type"], p["enums"], "#panel-body-", p["isOptional"], p["rootIsOptional"], p["multipleValuesAllowed"])
+        insertInputField(myPanelId, p["name"], getDesc(p["simpleName"]), p["type"], p["enums"], "#panel-body-", p["isOptional"], p["rootIsOptional"], p["multipleValuesAllowed"])
     });
 
     if (opt_props.length > 0) {
@@ -440,12 +446,12 @@ function addBox($jqueryElement, myPanelId, ds, buttons, sub) {
         })(myPanelId);
 
         opt_props.forEach(function (p) {
-            insertInputField(myPanelId, p["name"], getDesc(p["fatherType"], p["simpleName"]), p["type"], p["enums"], "#panel-body-opt-", p["isOptional"], p["rootIsOptional"], p["multipleValuesAllowed"])
+            insertInputField(myPanelId, p["name"], getDesc(p["simpleName"]), p["type"], p["enums"], "#panel-body-opt-", p["isOptional"], p["rootIsOptional"], p["multipleValuesAllowed"])
         });
 
         $('#panel-body-opt-' + myPanelId).slideUp(0);
         if (sub === true) {
-            var subClasses = getSubClasses(getObject(dsType, treeJson)).sort();
+            var subClasses = getSubClasses(dsType).sort();
             $("#panel-body-" + myPanelId).append('<select name="select" class="form-control input-myBackground input-mySelect" id="' + "sub_" + myPanelId + '" title="Select a sub-class if you want to specify further">');
             var dropdown = $('#' + 'sub_' + myPanelId);
             dropdown.append('<option value="">Default: ' + dsType + '</option>');
@@ -479,6 +485,7 @@ function addBox($jqueryElement, myPanelId, ds, buttons, sub) {
                             "jsonLd": createJsonLD ? createJsonLd(arg) : null,
                             "jsonWarning": "",
                             "dsID": "",
+                            "dsHash": ds["hash"],
                             "panelId": arg
                         });
                     });
@@ -558,15 +565,11 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
     inputFields.push(id);
 }
 
-function getDesc(className, propertyName) {
-    for (var i = 0; i < classesJson[className]["properties"].length; i++) {
-        if (propertyName === classesJson[className]["properties"][i]["name"]) {
-            return strip(classesJson[className]["properties"][i]["description"]);
-        }
-    }
+function getDesc(propertyName) {
+    return stripHtml(sdoProperties[propertyName]["description"]);
 }
 
-function strip(html) {
+function stripHtml(html) {
     var tmp = document.createElement('DIV');
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || '';
@@ -740,7 +743,7 @@ function createInjectionCodeForURL(UID) {
         "}\n" +
         "var request = new XMLHttpRequest();\n" +
         "request.onload = appendAnnotation;\n" +
-        'request.open("get", ' + semantifyShortUrl + UID + '", true);\n' +
+        'request.open("get", "' + semantifyShortUrl + UID + '", true);\n' +
         "request.send();";
     return code;
 }
@@ -775,27 +778,17 @@ function syntaxHighlight(json) {
     });
 }
 
-function getObject(dsType, tree) {
-    if (tree.name === dsType) {
-        return tree;
-    }
-    for (var i = 0; i < tree.subClasses.length; i++) {
-        var result = getObject(dsType, tree.subClasses[i]);
-        if (result) {
-            return result;
+function getSubClasses(type) {
+    var subClasses = [];
+    if (!sdoClasses.hasOwnProperty(type))
+        if (sdoClasses[type].hasOwnProperty("subClasses")) {
+            subClasses = subClasses.concat(sdoClasses[type]["subClasses"]);
+            subClasses.forEach(function (subclass) {
+                subClasses = subClasses.concat(getSubClasses(subclass));
+            });
         }
-    }
-    return null;
+    return subClasses;
 }
-
-function getSubClasses(tree) {
-    var result = [];
-    tree.subClasses.forEach(function (s) {
-        result.push(s.name);
-    });
-    return result;
-}
-
 
 function unique(list) {
     var result = [];
