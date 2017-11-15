@@ -4,6 +4,7 @@
 swagger/swagger-bundle.yml
 test1.txt
 data/*
+.idea/*
 
 # backup folder
 backup/
