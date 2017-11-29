@@ -377,6 +377,33 @@ function getTreeJson() {
     });
 }
 
+function addQuickBox($jqueryElement, strbuttons,sub, hash,panelstr){
+    getTreeJson();
+    getClassesJson();
+    var myPanelId=panelstr;
+    var buttons=[];
+    var buttonsArray = strbuttons.split("+");
+                buttonsArray.forEach(function (b) {
+                    switch (b) {
+                        case "preview":
+                            buttons.push(previewBtn);
+                            break;
+                        case "clear":
+                            buttons.push(clearBtn);
+                            break;
+                        case "save":
+                            buttons.push(saveBtn);
+                            break;
+                        case "copy":
+                            buttons.push(copyBtn);
+                            break;
+                    }
+                });
+    httpGet(semantifyUrl + "/api/domainSpecification/hash/" + hash, function (ds) {
+        addBox($jqueryElement,myPanelId,ds,buttons,sub);
+    });
+}
+
 function addBox($jqueryElement, myPanelId, ds, buttons, sub) {
     if (!(sdoPropertiesReady) || !(sdoClassesReady)) {
         setTimeout(function () {
@@ -780,7 +807,7 @@ function syntaxHighlight(json) {
 
 function getSubClasses(type) {
     var subClasses = [];
-    if (!sdoClasses.hasOwnProperty(type))
+    if (sdoClasses.hasOwnProperty(type))
         if (sdoClasses[type].hasOwnProperty("subClasses")) {
             subClasses = subClasses.concat(sdoClasses[type]["subClasses"]);
             subClasses.forEach(function (subclass) {
