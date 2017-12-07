@@ -1,5 +1,12 @@
 "use strict";
-
+var wp = false;
+var colClass = "";
+if(wp){
+    colClass = "col-lg-4 col-md-6 col-sm-6 col-xs-12";
+    var $ = jQuery;
+} else{
+    colClass = "col-lg-3 col-md-4 col-sm-6 col-xs-12";
+}
 var sdoProperties;
 var sdoPropertiesReady = false;
 var sdoClasses;
@@ -17,8 +24,109 @@ var semantifyUrl = "https://semantify.it";
 var semantifyShortUrl = "https://smtfy.it/";
 //semantifyShortUrl = "https://staging.semantify.it/api/annotation/short/";
 
-var saveApiKey = "Hkqtxgmkz";
+var defaultSemantifyApiKey = "Hkqtxgmkz";
+var saveApiKey = defaultSemantifyApiKey;
 var semantifyToken;
+
+var wordPressSaveBtn = {
+    "name": "Save",
+    "icon": "save",
+    "createJsonLD": true,
+    "onclick": function (res) {
+        console.log("wp save");
+
+        var bulk = [];
+        var toSend = {};
+        toSend["content"] = res.jsonLd;
+        toSend["dsHash"] = res.dsHash;
+        bulk.push(toSend);
+        if (res.jsonLd == null) {
+            return;
+        }
+        var snackBarOptions = {
+            htmlAllowed: true,
+            style: 'toast',
+            timeout: 3000
+        };
+        if (saveApiKey === "" || saveApiKey === undefined || saveApiKey === null) {
+            saveApiKey = defaultSemantifyApiKey;
+        }
+        httpPostJson(semantifyUrl + "/api/annotation/" + saveApiKey, bulk, function (saveRes) {
+            //console.log(saveRes);
+            if (saveRes) {
+                snackBarOptions["content"] = "Successfully saved Annotation to semantify.it";
+                $("#panel-footer-btn-Save-" + res.panelId).prop('disabled', true);
+                $.snackbar(snackBarOptions);
+
+                var ann_id = saveRes[0]["UID"];
+                $('#panel-' + res.panelId).data("smtfyAnnId", ann_id);
+                var post_id = $('#ia-data').attr("data-post_id");
+                var nonce = $('#ia-data').attr("data-nonce");
+
+                $.ajax({
+                    type: "post",
+                    dataType: "json",
+                    url: myAjax.ajaxurl,
+                    data: { action: "ia_push_ann", post_id: post_id, nonce: nonce, ann_id: ann_id, ds_hash: res.dsHash },
+                    success: function (res) {
+                        if (res.type === "success") {
+                            console.log("success", res);
+                        }
+                        else {
+                            console.log("failure", res);
+                        }
+                    },
+                    error: function (err) {
+                        console.log(err);
+                    }
+                });
+            } else {
+                send_snackbarMSG("An error occured. Please check your semantify api-key!", 4000)
+            }
+        });
+    }
+};
+
+var wordPressDeleteBtn = {
+    "name": "Delete",
+    "icon": "close",
+    "createJsonLD": false,
+    "onclick": function (res) {
+        console.log("wp delete");
+        var filled=$('#panel-'+res.panelId).data("smtfyAnnId");
+        var result;
+        if(filled==undefined||filled==null){
+            result=true;
+        }else{
+            result=confirm("Do you really want to delete this annotation?");
+        }
+
+        if (result) {
+            $("#panel-" + res.panelId).hide(500);
+
+            var post_id = $('#ia-data').attr("data-post_id");
+            var nonce = $('#ia-data').attr("data-nonce");
+
+            $.ajax({
+                type: "post",
+                dataType: "json",
+                url: myAjax.ajaxurl,
+                data: {action: "ia_delete_ann", post_id: post_id, nonce: nonce, ann_id: res.annId, ds_hash: res.dsHash},
+                success: function (res) {
+                    if (res.type === "success") {
+                        console.log("success", res);
+                    }
+                    else {
+                        console.log("failure", res);
+                    }
+                },
+                error: function (err) {
+                    console.log(err);
+                }
+            });
+        }
+    }
+};
 
 var copyBtn = {
     "name": "Copy",
@@ -28,6 +136,16 @@ var copyBtn = {
         console.log("Copy");
         if (resp.jsonLd)
             copyStr(JSON.stringify(resp.jsonLd, null, 2));
+    }
+};
+
+var deleteBtn = {
+    "name": "Close",
+    "icon": "close",
+    "createJsonLD": false,
+    "onclick": function (resp) {
+        console.log("Close");
+        $("#panel-" + resp.panelId.toString()).hide();
     }
 };
 
@@ -76,6 +194,7 @@ var saveBtn = {
                 document.body.appendChild(dummy);
                 dummy.setAttribute("id", "IA_preview_id");
                 $('#IA_preview_id').append(
+                    '<div class="bootstrap semantify">' +
                     '<div class="modal fade" id="IA_saveModal" role="dialog">' +
                     '<div class="modal-dialog">' +
                     '<div class="modal-content">' +
@@ -94,6 +213,7 @@ var saveBtn = {
                     '</div>' +
                     '<div class="modal-footer">' +
                     '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>' +
+                    '</div>' +
                     '</div>' +
                     '</div>' +
                     '</div>' +
@@ -245,6 +365,7 @@ var previewBtn = {
         document.body.appendChild(dummy);
         dummy.setAttribute("id", "preview_id");
         $('#preview_id').append(
+            '<div class="bootstrap semantify">' +
             '<div class="modal fade" id="previewModal" role="dialog">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
@@ -261,60 +382,47 @@ var previewBtn = {
             '</div>' +
             '</div>' +
             '</div>' +
+            '</div>' +
             '</div>'
         );
         $('#preview_textArea').html(syntaxHighlight(JSON.stringify(resp.jsonLd, null, 2)));
-        $('#previewModal').modal();
+        $('#previewModal')
+            .modal()
+            .on('hidden.bs.modal', function () {
+                $(this).remove();
+            });
         $('#IA_simple_preview_copy').click(function () {
             copyStr(JSON.stringify(resp.jsonLd, null, 2));
         });
+
     }
 };
 
 var defaultBtns = [clearBtn, saveBtn];
 
+var wpDefaultBtns = [previewBtn, wordPressSaveBtn, wordPressDeleteBtn];
+
+
 IA_Init();
 
 function IA_Init() {
-    getClassesJson();
-    getTreeJson();
+    if(!sdoPropertiesReady)
+        getPropertiesJson();
+    if(!sdoClassesReady)
+        getClassesJson();
 
     $('.IA_Box').each(function () {
+        if($(this).data('init') === "true")
+            return;
+        $(this).data('init', "true");
         var dsId = $(this).data("dsid");
         var dsHash = $(this).data("dshash");
         var dsName = $(this).data("dsname");
         var buttonsChoice = $(this).data("btns");
         var sub = $(this).data("sub");
+        var title = $(this).data("title");
 
-        var buttons = [];
-        switch (buttonsChoice) {
-            case "no" :
-                buttons = [];
-                break;
-            case "default":
-            case undefined:
-            case null:
-                buttons = defaultBtns.slice(); //to pass by value and not reference
-                break;
-            default:
-                var buttonsArray = buttonsChoice.split("+");
-                buttonsArray.forEach(function (b) {
-                    switch (b) {
-                        case "preview":
-                            buttons.push(previewBtn);
-                            break;
-                        case "clear":
-                            buttons.push(clearBtn);
-                            break;
-                        case "save":
-                            buttons.push(saveBtn);
-                            break;
-                        case "copy":
-                            buttons.push(copyBtn);
-                            break;
-                    }
-                });
-        }
+        var buttons = getButtons(buttonsChoice);
 
         $(this).children('div').each(function () {
             if ($(this).hasClass('IA_Btn')) {
@@ -338,20 +446,20 @@ function IA_Init() {
             if (dsId) {
                 httpGet(semantifyUrl + "/api/domainSpecification/" + dsId, function (ds) {
                     ds["hash"] = null;
-                    addBox($jqueryElement, id, ds, buttons, sub);
+                    addBox($jqueryElement, id, ds, buttons, sub, title, null);
                 });
             }
             else if (dsHash) {
                 httpGet(semantifyUrl + "/api/domainSpecification/hash/" + dsHash, function (ds) {
                     ds["hash"] = dsHash;
-                    addBox($jqueryElement, id, ds, buttons, sub);
+                    addBox($jqueryElement, id, ds, buttons, sub, title, null);
                 });
             }
             else if (dsName) {
                 httpGet(semantifyUrl + "/api/domainSpecification/searchName/" + dsName, function (dsList) {
                     var ds = dsList[0];
                     ds["hash"] = null;
-                    addBox($jqueryElement, id, ds, buttons, sub);
+                    addBox($jqueryElement, id, ds, buttons, sub, title, null);
                 });
             }
         }(panelId, $(this), sub));
@@ -360,33 +468,127 @@ function IA_Init() {
         panelId = "IAPanel" + panelCount;
 
     });
-
 }
 
-function getClassesJson() {
+function getButtons(btnString){
+    var buttons = [];
+    switch (btnString) {
+        case "no" :
+            buttons = [];
+            break;
+        case "default":
+        case undefined:
+        case null:
+            buttons = defaultBtns.slice(); //to pass by value and not reference
+            break;
+        case "wp_default":
+            buttons = wpDefaultBtns.slice(); //to pass by value and not reference
+            break;
+        default:
+            var buttonsArray = btnString.split("+");
+            buttonsArray.forEach(function (b) {
+                switch (b) {
+                    case "preview":
+                        buttons.push(previewBtn);
+                        break;
+                    case "clear":
+                        buttons.push(clearBtn);
+                        break;
+                    case "delete":
+                        buttons.push(deleteBtn);
+                        break;
+                    case "save":
+                        buttons.push(saveBtn);
+                        break;
+                    case "copy":
+                        buttons.push(copyBtn);
+                        break;
+                    case "wpsave":
+                        buttons.push(wordPressSaveBtn);
+                        break;
+                }
+            });
+    }
+    return buttons;
+}
+
+function getPropertiesJson() {
     httpGet("https://semantify.it/assets/data/latest/sdo_properties.min.json", function (data) {
         sdoProperties = data;
         sdoPropertiesReady = true;
     });
 }
 
-function getTreeJson() {
+function getClassesJson() {
     httpGet("https://semantify.it/assets/data/latest/sdo_classes.json", function (data) {
         sdoClasses = data;
         sdoClassesReady = true;
     });
 }
 
-function addBox($jqueryElement, myPanelId, ds, buttons, sub) {
+function getAllInputs(panelId) {
+    var allInputs = [];
+    inputFields.forEach(function (a) {
+        var compareId = a.slice(a.indexOf("_") + 1, a.indexOf("_", a.indexOf("_") + 1));
+        if (compareId === panelId.toString()) { //only inputs from same panel
+            allInputs.push(a);
+        }
+    });
+    return allInputs;
+}
+
+function fillBox(panelId, UID) {
+    $('#panel-'+panelId).data("smtfyAnnId", UID);
+    var allInputs = getAllInputs(panelId);
+    httpGet("https://semantify.it/api/annotation/short/" + UID, function (data) {
+        var flatJson = flatten(data);
+        $('#sub_' + panelId).val(flatJson['@type']).change();
+        allInputs.forEach(function (a) {
+            var $inputField = $("#" + a);
+            var path = $inputField.data("name");
+            var tempValue = flatJson[path.replace(/-/g, ".")];
+            $inputField.val(tempValue);
+        });
+    });
+}
+
+function flatten(o) {
+    var prefix = arguments[1] || "", out = arguments[2] || {}, name;
+    for (name in o) {
+        if (o.hasOwnProperty(name)) {
+            typeof o[name] === "object" ? flatten(o[name], prefix + name + '.', out) :
+                out[prefix + name] = o[name];
+        }
+    }
+    return out;
+}
+
+function helperRemove(str) {
+    if (str.indexOf(':') != -1) {
+        return str.substr(str.indexOf(':') + 1);
+
+    } else {
+        return str;
+    }
+
+}
+
+
+function addQuickBox($jqueryElement, strbuttons, sub, panelstr, ds, title, cb) {
+    var myPanelId = panelstr;
+    var buttons = getButtons(strbuttons);
+    addBox($jqueryElement, myPanelId, ds, buttons, sub, title, cb);
+}
+
+function addBox($jqueryElement, myPanelId, ds, buttons, sub, title, cb) {
     if (!(sdoPropertiesReady) || !(sdoClassesReady)) {
         setTimeout(function () {
-            addBox($jqueryElement, myPanelId, ds, buttons, sub);
+            addBox($jqueryElement, myPanelId, ds, buttons, sub, title, cb);
         }, 100);
         return;
     }
 
     $('#loading' + myPanelId).hide();
-    var title = $jqueryElement.data("title");
     var curDs = ds["content"];
     var dsName = (title ? title : (curDs === undefined ? "DS not found" : curDs["schema:name"]));
     var dsType = curDs["dsv:class"][0]["schema:name"];
@@ -394,13 +596,15 @@ function addBox($jqueryElement, myPanelId, ds, buttons, sub) {
 
     var footer = (buttons && buttons.length > 0 ? '<div class="panel-footer text-center" id="panel-footer-' + myPanelId + '"></div>' : '');      //only display footer if there are some buttons
     $jqueryElement.append(
-        '<div class="panel panel-info col-lg-3 col-md-4 col-sm-6" id="panel-' + myPanelId + '" style="margin: 10px; padding: 10px;" >' +
+        '<div class="' + colClass + '" id="panel-' + myPanelId + '">' +
+        '<div class="panel panel-info ">'+
         '<div class="panel-heading sti-red"> ' +
         '<h3>' + dsName + '</h3>' +
         '</div> ' +
         '<div class="panel-body" id="panel-body-' + myPanelId + '">' +
         '</div>' +
         footer +
+        '</div>' +
         '</div>');
     var t = {
         "panelId": myPanelId,
@@ -429,7 +633,7 @@ function addBox($jqueryElement, myPanelId, ds, buttons, sub) {
 
     if (opt_props.length > 0) {
         $('#' + 'panel-body-' + myPanelId)
-            .append('<button type="button" class="btn btn-block btn-default text-left" id="panel-body-opt-btn-' + myPanelId + '" style="background-color: lightgrey;">Optional Fields <span class="caret"></button>')
+            .append('<button type="button" class="btn btn-block btn-default text-left" id="panel-body-opt-btn-' + myPanelId + '" style="background-color: lightgrey;">Optional<span class="caret"></button>')
             .append('<div id="panel-body-opt-' + myPanelId + '"> </div>');
 
         // this is because if you call onclick it would use the last recent panelId and not the current one
@@ -454,7 +658,7 @@ function addBox($jqueryElement, myPanelId, ds, buttons, sub) {
             var subClasses = getSubClasses(dsType).sort();
             $("#panel-body-" + myPanelId).append('<select name="select" class="form-control input-myBackground input-mySelect" id="' + "sub_" + myPanelId + '" title="Select a sub-class if you want to specify further">');
             var dropdown = $('#' + 'sub_' + myPanelId);
-            dropdown.append('<option value="">Default: ' + dsType + '</option>');
+            dropdown.append('<option value="' + dsType + '">Default: ' + dsType + '</option>');
             subClasses.forEach(function (e) {
                 dropdown.append('<option value="' + e + '">' + e + '</option>');
             });
@@ -464,7 +668,7 @@ function addBox($jqueryElement, myPanelId, ds, buttons, sub) {
 
     for (var j in buttons) {
         if (buttons.hasOwnProperty(j)) {
-            (function (arg) {    // because the onclick changes with each loop all buttons would call the same function
+            (function (thisPanelId) {    // because the onclick changes with each loop all buttons would call the same function
                 var name = buttons[j]["name"];
                 var onclick = buttons[j]["onclick"];
                 var additionalClasses = buttons[j]["additionalClasses"];
@@ -472,27 +676,29 @@ function addBox($jqueryElement, myPanelId, ds, buttons, sub) {
                 var createJsonLD = !!buttons[j]["createJsonLD"];    // default is false
                 var onlyIcon = buttons[j]["onlyIcon"] !== false;    //default is true
 
-                $('#panel-footer-' + myPanelId).append(
-                    '<button class="btn button-sti-red" id="panel-footer-btn-' + name + '-' + myPanelId + '" style="margin: 5px 5px; padding: 10px 10px" ' + (additionalClasses ? additionalClasses : "") + ' title="' + name + '" >' +
+                $('#panel-footer-' + thisPanelId).append(
+                    '<button class="btn button-sti-red" id="panel-footer-btn-' + name + '-' + thisPanelId + '" style="margin: 5px 5px; padding: 10px 10px" ' + (additionalClasses ? additionalClasses : "") + ' title="' + name + '" >' +
                     (icon ? '<i class="material-icons">' + icon + '</i>' : name) +
                     (onlyIcon ? '' : ' ' + name) +
                     '</button>'
                 );
 
-                $('#panel-footer-btn-' + name + '-' + myPanelId)
-                    .click(function () {
+                $('#panel-footer-btn-' + name + '-' + thisPanelId)
+                    .click(function (e) {
+                        e.preventDefault();
                         onclick({
-                            "jsonLd": createJsonLD ? createJsonLd(arg) : null,
-                            "jsonWarning": "",
-                            "dsID": "",
+                            "jsonLd": createJsonLD ? createJsonLd(thisPanelId) : null,
                             "dsHash": ds["hash"],
-                            "panelId": arg
+                            "annId": $('#panel-'+thisPanelId).data("smtfyAnnId"),
+                            "panelId": thisPanelId
                         });
                     });
 
             })(myPanelId);
         }
     }
+    if(cb)
+        cb();
 }
 
 
@@ -780,7 +986,7 @@ function syntaxHighlight(json) {
 
 function getSubClasses(type) {
     var subClasses = [];
-    if (!sdoClasses.hasOwnProperty(type))
+    if (sdoClasses.hasOwnProperty(type))
         if (sdoClasses[type].hasOwnProperty("subClasses")) {
             subClasses = subClasses.concat(sdoClasses[type]["subClasses"]);
             subClasses.forEach(function (subclass) {

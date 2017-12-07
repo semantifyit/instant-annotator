@@ -60,6 +60,17 @@ It is fairly easy to add boxes to your html
 
 To specify which domainspecification should be attributed to the box either the field `data-dsname` or has to be edited or `data-dshash` has to be present.
 
+
+The Instant-Annotator is a lightweight editor to create [schema.org](schema.org) annotations. It is used to annotate things like events, recipes, articles .. in regards to the [recommended properties by google](https://developers.google.com/search/docs/guides/).
+
+To use it simply fill in at least all required fields (all fields above optional) and hit Save. In case of success a window will open showing you that the JSON-LD annotation was automatically saved to [semantify.it](semantify.it) and thus can be accessible by a short url (eg. smtfy.it/abcde).
+Additionally you can add the just created annotation to your semantify account by simply using the login fields in this new window. Just enter your semantify credentials, select a website you want to save the annotation to and your done. The next time you visit you semantify.it account, you will see that annotation under your selected website.
+
+### How can I add even more information to my annotation
+
+If you can't find an appropriate field for your information, you can copy and edit your annotation on your own. Make sure that you use types and properties provided by [schema.org](schema.org). Keep in mind that all fields that are currently listed in the Instant-Annotation are the only fields that will be read by Google.
+
+
 ### Domainspecifications with their hashes:
 - [SimpleArticle](https://developers.google.com/search/docs/data-types/articles)
 :H1TlMn-4M1f
@@ -70,6 +81,7 @@ To specify which domainspecification should be attributed to the box either the 
 - [SimpleLocalBusiness](https://developers.google.com/search/docs/data-types/local-businesses)
 :Byigf2ZEfJf
 - [SimpleRecipe](https://developers.google.com/search/docs/data-types/recipes)
+<<<<<<< HEAD
 :ry0lz3ZVf1G
 
 It is furthermore possible to customize the box with the help of a few html data attributes:
@@ -292,5 +304,3 @@ The response contains the id of the box and the jsonLD if data-createJsonLD is s
 To see a full example with custom buttons check out our demo webpage:
 
 ### [Example Web Page](https://semantifyit.github.io/ia)
-
-
