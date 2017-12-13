@@ -1,9 +1,127 @@
 "use strict";
+
+
+/* we use sandbox, so all funcitons are here as local */
+window.addEventListener("load", function(){
+
+    /* our dependecies */
+    var depScripts = [
+
+        /* condidtion and url */
+
+        /* jQuery */
+        ['jQuery','https://code.jquery.com/jquery-3.2.1.min.js'],
+        /* popper */
+        ['Popper','https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js'],
+        /* bootstrap */
+        ['$.fn.popover','https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js'],
+        /* arrive */
+        ['$.fn.arrive','https://cdnjs.cloudflare.com/ajax/libs/arrive/2.4.1/arrive.min.js'],
+        /* ripple */
+        ['$.fn.ripples','https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.9/js/ripples.js'],
+        /* bootstrapMaterialDesign */
+        ['$.fn.material','https://cdnjs.cloudflare.com/ajax/libs/arrive/2.4.1/arrive.min.js'],
+        /* snackbar */
+        ['$.fn.snackbar','https://cdnjs.cloudflare.com/ajax/libs/snackbarjs/1.1.0/snackbar.min.js'],
+        /* Clipboard */
+        ['Clipboard','https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js'],
+        /* moment */
+        ['moment','https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js'],
+        /* History */
+        ['ax5','https://cdn.rawgit.com/ax5ui/ax5core/master/dist/ax5core.min.js'],
+        /* <!-- History --> */
+        ['$.fn.datetimepicker','https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js']
+
+    ];
+
+    /* well we have to use globaliterator (but only in this scope limited in self call function)
+     * because callback function has only name without args. If I put args there function will automatically
+     * execute and we dont need it.
+     */
+    var global_i = 0;
+
+    /* initialize all dependant scripts */
+    loadDependantScripts();
+
+
+    function loadDependantScripts(){
+
+        /* exit recursion when all scripts are loaded */
+        if(depScripts.length<=global_i){
+
+            /* boot instant anotations */
+            boot_instant_annotations_enviroment();
+            return true;
+        }
+
+        /* script properities */
+        var scriptName = depScripts[global_i][0];
+        var scriptUrl = depScripts[global_i][1];
+
+        /* increment global iterator */
+        global_i = global_i+1;
+
+        /* check if function is initialized */
+        console.log("" + scriptName +" loaded before this script = "+isLoaded(scriptName));
+        if(!isLoaded(scriptName)){
+
+            /* create tag */
+            var script_tag = document.createElement('script');
+            script_tag.type = 'text/javascript';
+            script_tag.src = scriptUrl;
+
+            /* on load next dependant script */
+            script_tag.onload = loadDependantScripts;
+
+            /* support for ie */
+            script_tag.onreadystatechange = function () { //Same thing but for IE
+                if (this.readyState == 'complete' || this.readyState == 'loaded'){
+                    loadDependantScripts();
+                }
+            }
+
+            /* add script to header */
+            document.getElementsByTagName("head")[0].appendChild(script_tag);
+        }else{
+
+            /* if script is loaded by user, check next script */
+            loadDependantScripts();
+        }
+    }
+
+
+    /* functionn which check if function is defined by its name */
+    function isLoaded(func) {
+
+        /* for resolving nested functions */
+        Object.resolve = function(path, obj) {
+            return path.split('.').reduce(function(prev, curr) {
+                return prev ? prev[curr] : undefined
+            }, obj || self)
+        }
+
+        /* returns true if functions exists */
+        if(typeof window[func] !== 'undefined'){
+            return true;
+        }else{
+            /* returns true if nested functions exists */
+          if(Object.resolve(func) !==undefined){
+              return true;
+          }
+          return false;
+        };
+    }
+
+
+/* enviroment is in function wrapper */
+function boot_instant_annotations_enviroment() {
+
+        var $ = jQuery;
 var wp = false;
 var colClass = "";
 if(wp){
     colClass = "col-lg-4 col-md-6 col-sm-6 col-xs-12";
-    var $ = jQuery;
+
 } else{
     colClass = "col-lg-3 col-md-4 col-sm-6 col-xs-12";
 }
@@ -194,7 +312,7 @@ var saveBtn = {
                 document.body.appendChild(dummy);
                 dummy.setAttribute("id", "IA_preview_id");
                 $('#IA_preview_id').append(
-                    '<div class="bootstrap semantify">' +
+                    '<div class="bootstrap semantify semantify-instant-annotations">' +
                     '<div class="modal fade" id="IA_saveModal" role="dialog">' +
                     '<div class="modal-dialog">' +
                     '<div class="modal-content">' +
@@ -402,7 +520,7 @@ var defaultBtns = [clearBtn, saveBtn];
 
 var wpDefaultBtns = [previewBtn, wordPressSaveBtn, wordPressDeleteBtn];
 
-
+/* start instant annotations */
 IA_Init();
 
 function IA_Init() {
@@ -1070,3 +1188,7 @@ function httpPostJson(url, json, callback) {
         }
     });
 }
+
+};
+
+});

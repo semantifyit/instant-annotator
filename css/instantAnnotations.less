@@ -1,0 +1,52 @@
+.semantify-instant-annotations{
+  @import "sti-style.less";
+  @import "instantAnnotationsStyles.less";
+  @import "bootstrap.less";
+  @import "bootstrap-material-design.less";
+  @import "bootstrap-datetimepicker.less";
+  @import "ripples.less";
+  @import "icon.less";
+  @import "roboto.less";
+  @import "fonts.less";
+
+  pre{
+    margin: 5px;
+  }
+
+  button, input, select, textarea {
+    font-family: Roboto, Helvetica, Arial, sans-serif;
+    font-size:inherit;
+    line-height:inherit;
+  }
+
+}
+
+
+#snackbar-container{position:fixed;left:20px;bottom:0;z-index:99999}.snackbar{overflow:hidden;clear:both;min-width:288px;max-width:568px;cursor:pointer;opacity:0}.snackbar.snackbar-opened{height:auto;opacity:1}@media (max-width:767px){#snackbar-container{left:0!important;right:0;width:100%}#snackbar-container .snackbar{min-width:100%}#snackbar-container [class="snackbar snackbar-opened"]~.snackbar.toast{margin-top:20px}#snackbar-container [class="snackbar snackbar-opened"]{border-radius:0;margin-bottom:0}}
+
+.modal-open {
+  overflow: hidden
+}
+.modal-backdrop {
+  background: rgba(0, 0, 0, .3)
+}
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1040;
+  background-color: #000
+}
+
+.modal-backdrop.fade {
+  filter: alpha(opacity=0);
+  opacity: 0
+}
+
+.modal-backdrop.in {
+  filter: alpha(opacity=50);
+  opacity: .5
+}
+

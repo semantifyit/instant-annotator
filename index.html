@@ -1,86 +1,140 @@
 <!DOCTYPE HTML>
 <html>
-    <head>
-        <meta http-equiv="content-type" content="text/html; charset=utf-8">
-        <!-- Material Design fonts -->
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-        <!-- Bootstrap -->
-        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-        <!-- Bootstrap Material Design -->
-        <link rel="stylesheet" type="text/css"
-              href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.9/css/ripples.min.css">
-        <link rel="stylesheet" type="text/css"
-              href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.9/css/bootstrap-material-design.min.css">
-        <!-- Snackbar -->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/snackbarjs/1.1.0/snackbar.min.css">
-        <!-- Style of this project -->
-        <link rel="stylesheet" href="https://semantify.it/dashboard/assets/style.css"/>
-        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
-        <!-- jQuery Script -->
-        <script
-                src="https://code.jquery.com/jquery-3.2.1.min.js"
-                integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
-        <!-- arrive.js -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/arrive/2.4.1/arrive.min.js"></script>
-        <!-- Bootstrap Script -->
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-        <!-- Bootstrap Material Design Script -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.9/js/ripples.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.9/js/material.min.js"></script>
-        <!-- Snackbar-->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/snackbarjs/1.1.0/snackbar.min.js"></script>
-        <!-- clipboard -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js"></script>
-        <!-- momentjs -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
-        <!-- History -->
-        <script type="text/javascript" src="https://cdn.rawgit.com/ax5ui/ax5core/master/dist/ax5core.min.js"></script>
-
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css">
-        <script defer src="./javascript/instantAnnotations.js"></script>
-
-        <title>Instant Annotation Demo</title>
-    </head>
-    <body>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
 
 
-    <br/>
-    <div class="container">
+
+    <!-- load styles for instant annotations -->
+    <link rel="stylesheet" href="./css/instantAnnotations.css"/>
+
+    <!-- load script for instant annotations -->
+    <script defer src="./javascript/instantAnnotations.js"></script>
+
+
+
+
+    <style>
+        h1,h4{
+            color: rgb(51, 51, 51);
+            font-family: Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        h1{
+            font-size: 40px !important;
+            font-weight: bold;
+        }
+
+        h4{
+            font-size: 18px;
+            font-family: Roboto, Helvetica, Arial, sans-serif;
+            font-weight: 300;
+        }
+
+        h1, h2, h3, h4, h5 {
+            margin: 5px !important;
+        }
+
+        a, a:focus, a:hover {
+            color:#009688;
+        }
+
+        .container {
+            padding-right: 15px;
+            padding-left: 15px;
+            margin-right: auto;
+            margin-left: auto;
+        }
+
+        @media (min-width:768px) {
+            .container {
+                width: 750px
+            }
+        }
+
+        @media (min-width:992px) {
+            .container {
+                width: 970px
+            }
+        }
+
+        @media (min-width:1200px) {
+            .container {
+                width: 1170px
+            }
+        }
+
+        .btn-group-vertical > .btn-group::after, .btn-group-vertical > .btn-group::before, .btn-toolbar::after, .btn-toolbar::before, .clearfix::after, .clearfix::before, .container-fluid::after, .container-fluid::before, .container::after, .container::before, .dl-horizontal dd::after, .dl-horizontal dd::before, .form-horizontal .form-group::after, .form-horizontal .form-group::before, .modal-footer::after, .modal-footer::before, .modal-header::after, .modal-header::before, .nav::after, .nav::before, .navbar-collapse::after, .navbar-collapse::before, .navbar-header::after, .navbar-header::before, .navbar::after, .navbar::before, .pager::after, .pager::before, .panel-body::after, .panel-body::before, .row::after, .row::before {
+            display:table;
+            content:" ";
+        }
+
+        .btn-group-vertical > .btn-group::after, .btn-toolbar::after, .clearfix::after, .container-fluid::after, .container::after, .dl-horizontal dd::after, .form-horizontal .form-group::after, .modal-footer::after, .modal-header::after, .nav::after, .navbar-collapse::after, .navbar-header::after, .navbar::after, .pager::after, .panel-body::after, .row::after {
+            clear:both;
+        }
+
+        .container-fluid > .navbar-collapse, .container-fluid > .navbar-header,
+        .container > .navbar-collapse, .container > .navbar-header {
+            margin-right: -15px;
+            margin-left: -15px
+        }
+
+        @media (min-width:768px) {
+            .container-fluid > .navbar-collapse, .container-fluid > .navbar-header,
+            .container > .navbar-collapse, .container > .navbar-header {
+                margin-right: 0;
+                margin-left: 0
+            }
+        }
+
+        body {
+            background-color:#EEE;
+        }
+
+    </style>
+
+
+
+    <title>Instant Annotation Demo</title>
+</head>
+<body>
+
+
+<br/>
+<div class="container">
     <h1>Instant Annotation Demo</h1>
     <br/>
     <h4>Confused or need help, check out the documentation on github:
         <a target="_blank" href="https://github.com/semantifyit/instant_annotator">README</a>
     </h4>
     <br/>
-    <div class="row">
-        <div class="IA_Box" data-dshash="ry0lz3ZVf1G" data-btns="default" data-title="Veranstaltung"></div>
-        <div class="IA_Box" data-dshash="H1TlMn-4M1f" data-sub="true" data-btns="preview+clear+save+copy"></div>
-        <div class="IA_Box" data-dshash="rkhlM3-EGyM" data-sub="true">
-            <script>
-                function downloadClick(response) {
-                    console.log("Download");
-                    console.log(response);
-                }
-                function closeClick(response) {
-                    console.log("Close panel");
-                    $("#panel-" + response["panelId"]).hide("slow");
-                }
-            </script>
-            <div class="IA_Btn" data-name="Download" data-icon="file_download" data-createjsonld="true"
-                 data-onclick=downloadClick></div>
-            <div class="IA_Btn" data-name="Close" data-icon="close" data-createjsonld="false"
-                 data-onclick=closeClick></div>
+    <div class="semantify-instant-annotations">
+        <div class="row">
+            <div class="IA_Box" data-dshash="ry0lz3ZVf1G" data-btns="default" data-title="Veranstaltung"></div>
+            <div class="IA_Box" data-dshash="H1TlMn-4M1f" data-sub="true" data-btns="preview+clear+save+copy"></div>
+            <div class="IA_Box" data-dshash="rkhlM3-EGyM" data-sub="true">
+                <script>
+                    function downloadClick(response) {
+                        console.log("Download");
+                        console.log(response);
+                    }
+                    function closeClick(response) {
+                        console.log("Close panel");
+                        $("#panel-" + response["panelId"]).hide("slow");
+                    }
+                </script>
+                <div class="IA_Btn" data-name="Download" data-icon="file_download" data-createjsonld="true"
+                     data-onclick=downloadClick></div>
+                <div class="IA_Btn" data-name="Close" data-icon="close" data-createjsonld="false"
+                     data-onclick=closeClick></div>
+            </div>
+            <div class="IA_Box" data-dshash="Byigf2ZEfJf" data-btns="default"></div>
+            <div class="IA_Box" data-dshash="SyqlG3b4Mkf" data-btns="default"></div>
         </div>
-        <div class="IA_Box" data-dshash="Byigf2ZEfJf" data-btns="default"></div>
-        <div class="IA_Box" data-dshash="SyqlG3b4Mkf" data-btns="default"></div>
     </div>
 </div>
 
 
-    </body>
+</body>
 
 </html>
