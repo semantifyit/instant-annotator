@@ -23,14 +23,18 @@ The Instant-Annotator uses so-called domainspecifications. Those are customisabl
 
 When you download the package, just link this css file:
 
-    ```<link rel="stylesheet" href="./css/instantAnnotations.css"/>```
+    ```html
+    <link rel="stylesheet" href="./css/instantAnnotations.css"/>
+    ```
 
 ### Javascript
 
 Also same for javascript:
 
 
-    ```<script src="./javascript/instantAnnotations.js"></script>```
+    ```html
+    <script src="./javascript/instantAnnotations.js"></script>
+    ```
 
 
 ### Javascript Dependencies
