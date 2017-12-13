@@ -23,14 +23,14 @@ The Instant-Annotator uses so-called domainspecifications. Those are customisabl
 
 When you download the package, just link this css file:
 
-    `<link rel="stylesheet" href="./css/instantAnnotations.css"/>`
+    ```<link rel="stylesheet" href="./css/instantAnnotations.css"/>```
 
 ### Javascript
 
 Also same for javascript:
 
 
-    `<script src="./javascript/instantAnnotations.js"></script>`
+    ```<script src="./javascript/instantAnnotations.js"></script>```
 
 
 ### Javascript Dependencies
@@ -132,20 +132,20 @@ The response contains the id of the box and the jsonLD if data-createJsonLD is s
 **Example:**<br />
 ```html
 <div class="semantify-instant-annotations">
-<div class="IA_Box" data-dshash="Z1wBPe7" data-sub="true">
-                <script>
-                function downloadClick(response){
-                    console.log("Download");
-                    console.log(response);
-                }
-                function closeClick(response){
-                    console.log("Close panel");
-                    $("#panel-"+response["panelId"]).hide( "slow");
-                }
-                </script>
-                <div class="IA_Btn" data-name="Download" data-icon="file_download" data-createjsonld="true" data-onclick=downloadClick></div>
-                <div class="IA_Btn" data-name="Close" data-icon="close" data-createjsonld="false" data-onclick=closeClick></div>
-</div>
+    <div class="IA_Box" data-dshash="Z1wBPe7" data-sub="true">
+                    <script>
+                    function downloadClick(response){
+                        console.log("Download");
+                        console.log(response);
+                    }
+                    function closeClick(response){
+                        console.log("Close panel");
+                        $("#panel-"+response["panelId"]).hide( "slow");
+                    }
+                    </script>
+                    <div class="IA_Btn" data-name="Download" data-icon="file_download" data-createjsonld="true" data-onclick=downloadClick></div>
+                    <div class="IA_Btn" data-name="Close" data-icon="close" data-createjsonld="false" data-onclick=closeClick></div>
+    </div>
 </div>
 ```
 
