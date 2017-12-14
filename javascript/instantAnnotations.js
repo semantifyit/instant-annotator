@@ -2,7 +2,7 @@
 
 
 /* we use sandbox, so all funcitons are here as local */
-window.addEventListener("load", function(){
+this.IA_Init = function(){
 
     /* our dependecies */
     var depScripts = [
@@ -1191,4 +1191,4 @@ function httpPostJson(url, json, callback) {
 
 };
 
-});
+}();
