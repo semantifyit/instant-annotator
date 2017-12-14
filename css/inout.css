@@ -1,33 +1,3 @@
-.semantify-instant-annotations{
-  @import "sti-style.less";
-  @import "instantAnnotationsStyles.less";
-  @import "bootstrap.less";
-  @import "bootstrap-material-design.less";
-  @import "bootstrap-datetimepicker.less";
-  @import "ripples.less";
-  @import "icon.less";
-  @import "roboto.less";
-  @import "inout.less";
-
-  pre{
-    margin: 5px;
-  }
-
-  button, input, select, textarea {
-    font-family: Roboto, Helvetica, Arial, sans-serif;
-    font-size:inherit;
-    line-height:inherit;
-  }
-  p, .modal-body {
-    font-family: Roboto, Helvetica, Arial, sans-serif;
-  }
-}
-
-@import "fonts.less";
-@import "snackbar.less";
-
-@import "inout.less";
-
 .modal-open {
   overflow: hidden;
 }

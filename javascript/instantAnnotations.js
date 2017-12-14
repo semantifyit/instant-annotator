@@ -407,7 +407,7 @@ var saveBtn = {
                 if (!semantifyToken) {
                     $('#IA_loginSection').append(
                         '<p>Want to save this Annotation to your Semantify.it account?</p>' +
-                        '<button type="button" class="btn button-sti-red" id="IA_loginBtn" style="margin:0 10px 0 0">Login</button>' +
+                        '<button type="button" class="btn button-sti-red" id="IA_loginBtn" style="margin:0 10px 0 0;padding:6px 30px; line-height:24px;">Login</button>' +
                         //style on login btn is because the icon makes the button larger
                         '<button type="button" class="btn button-sti-red" id="IA_registerBtn" style="padding:6px 30px" onclick=" window.open(\'https://semantify.it/register\',\'_blank\')" title="Register at semantify.it"> <i class="material-icons">open_in_new</i>  Register</button>' +
                         '<div id="IA_credentialsSection" hidden>' +
