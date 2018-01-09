@@ -38,13 +38,44 @@ Also same for javascript:
 
 
 ### Javascript Dependencies
-This plugin depends of few javascript libraries, but no need to import them, because our plugin can load everything automatically if needed:
+This plugin depends of few javascript libraries. 
 
 * [jquery](https://code.jquery.com/) JS
 * [snackbarjs](https://cdnjs.com/libraries/snackbarjs) JS + CSS
 * [moment.js](https://cdnjs.com/libraries/moment.js/) JS
 * [bootstrap](https://www.bootstrapcdn.com/) JS + CSS
 * [bootstrap-datetimepicker](https://cdnjs.com/libraries/bootstrap-datetimepicker) JS
+
+Plugin automatically checks if libraries are loaded. If not it will load them, but it takes little bit time. 
+If you want load libraries manualy, please include this scripts in your code.
+
+```html
+/* jQuery */
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+/* bootstrap */
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+/* popper */
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+/* arrive */
+<script src="https://cdnjs.cloudflare.com/ajax/libs/arrive/2.4.1/arrive.min.js"></script>
+/* ripple */
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.9/js/ripples.js"></script>
+/* bootstrapMaterialDesign */
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.9/js/material.min.js"></script>
+/* snackbar */
+<script src="https://cdnjs.cloudflare.com/ajax/libs/snackbarjs/1.1.0/snackbar.min.js"></script>
+ /* Clipboard */
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js"></script>
+/* moment */
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+/* ax5core */
+<script src="https://cdn.rawgit.com/ax5ui/ax5core/master/dist/ax5core.min.js"></script>
+/* datepicker */
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+```
+
+
+
 
 
 ## Adding boxes

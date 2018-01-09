@@ -20,7 +20,7 @@ this.IA_Init = function(){
         /* ripple */
         ['$.fn.ripples','https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.9/js/ripples.js'],
         /* bootstrapMaterialDesign */
-        ['$.fn.material','https://cdnjs.cloudflare.com/ajax/libs/arrive/2.4.1/arrive.min.js'],
+        ['$.fn.material','https://cdnjs.cloudflare.com/ajax/libs/bootstrap-material-design/0.5.9/js/material.min.js'],
         /* snackbar */
         ['$.fn.snackbar','https://cdnjs.cloudflare.com/ajax/libs/snackbarjs/1.1.0/snackbar.min.js'],
         /* Clipboard */
