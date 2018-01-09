@@ -13,7 +13,7 @@ If you can't find an appropriate field for your information, you can copy and ed
 
 ### How does it work?
 
-The Instant-Annotator uses so-called domainspecifications. Those are customisable restrictions on [schema.org](schema.org) types and its properties. Those domain specifications provide the information of required and optional fields, as well as the ranges of schema.org properties.
+The Instant-Annotator uses so-called domain specifications. Those are customisable restrictions on [schema.org](schema.org) types and its properties. Those domain specifications provide the information of required and optional fields, as well as the ranges of schema.org properties.
 
 
 # Adding The Instant-Annotator To Your Website
@@ -38,7 +38,7 @@ Also same for javascript:
 
 
 ### Javascript Dependencies
-This plugin depends of few javascript libraries. 
+This plugin depends on few javascript libraries. 
 
 * [jquery](https://code.jquery.com/) JS
 * [snackbarjs](https://cdnjs.com/libraries/snackbarjs) JS + CSS
@@ -46,8 +46,8 @@ This plugin depends of few javascript libraries.
 * [bootstrap](https://www.bootstrapcdn.com/) JS + CSS
 * [bootstrap-datetimepicker](https://cdnjs.com/libraries/bootstrap-datetimepicker) JS
 
-Plugin automatically checks if libraries are loaded. If not it will load them, but it takes little bit time. 
-If you want load libraries manualy, please include this scripts in your code.
+The plugin automatically checks if libraries are loaded. If not it will load them, but it takes little bit time. 
+If you want load libraries manually, please include this scripts in your code.
 
 ```html
 /* jQuery */
