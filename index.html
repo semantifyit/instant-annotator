@@ -8,132 +8,141 @@
     <!-- load styles for instant annotations -->
     <link rel="stylesheet" href="./css/instantAnnotations.css"/>
 
-    <!-- load script for instant annotations -->
-    <script  src="./javascript/instantAnnotations.js"></script>
+     <style>
+         h1,h4{
+             color: rgb(51, 51, 51);
+             font-family: Roboto, Helvetica, Arial, sans-serif;
+         }
+
+         h1{
+             font-size: 40px !important;
+             font-weight: bold;
+         }
+
+         h4{
+             font-size: 18px;
+             font-family: Roboto, Helvetica, Arial, sans-serif;
+             font-weight: 300;
+         }
+
+         h1, h2, h3, h4, h5 {
+             margin: 5px !important;
+         }
+
+         a, a:focus, a:hover {
+             color:#009688;
+         }
+
+         .container {
+             padding-right: 15px;
+             padding-left: 15px;
+             margin-right: auto;
+             margin-left: auto;
+         }
+
+         @media (min-width:768px) {
+             .container {
+                 width: 750px
+             }
+         }
+
+         @media (min-width:992px) {
+             .container {
+                 width: 970px
+             }
+         }
+
+         @media (min-width:1200px) {
+             .container {
+                 width: 1170px
+             }
+         }
+
+         .btn-group-vertical > .btn-group::after, .btn-group-vertical > .btn-group::before, .btn-toolbar::after, .btn-toolbar::before, .clearfix::after, .clearfix::before, .container-fluid::after, .container-fluid::before, .container::after, .container::before, .dl-horizontal dd::after, .dl-horizontal dd::before, .form-horizontal .form-group::after, .form-horizontal .form-group::before, .modal-footer::after, .modal-footer::before, .modal-header::after, .modal-header::before, .nav::after, .nav::before, .navbar-collapse::after, .navbar-collapse::before, .navbar-header::after, .navbar-header::before, .navbar::after, .navbar::before, .pager::after, .pager::before, .panel-body::after, .panel-body::before, .row::after, .row::before {
+             display:table;
+             content:" ";
+         }
+
+         .btn-group-vertical > .btn-group::after, .btn-toolbar::after, .clearfix::after, .container-fluid::after, .container::after, .dl-horizontal dd::after, .form-horizontal .form-group::after, .modal-footer::after, .modal-header::after, .nav::after, .navbar-collapse::after, .navbar-header::after, .navbar::after, .pager::after, .panel-body::after, .row::after {
+             clear:both;
+         }
+
+         .container-fluid > .navbar-collapse, .container-fluid > .navbar-header,
+         .container > .navbar-collapse, .container > .navbar-header {
+             margin-right: -15px;
+             margin-left: -15px
+         }
+
+         @media (min-width:768px) {
+             .container-fluid > .navbar-collapse, .container-fluid > .navbar-header,
+             .container > .navbar-collapse, .container > .navbar-header {
+                 margin-right: 0;
+                 margin-left: 0
+             }
+         }
+
+         body {
+             background-color:#EEE;
+         }
+
+     </style>
+
+     <title>Instant Annotation Demo</title>
+
+ </head>
+ <body>
 
 
+ <br/>
+ <div class="container">
+     <h1>Instant Annotation Demo</h1>
+     <br/>
+     <h4>Confused or need help, check out the documentation on github:
+         <a target="_blank" href="https://github.com/semantifyit/instant_annotator">README</a>
+     </h4>
+     <br/>
+     <div class="semantify-instant-annotations">
+         <div class="row">
+             <div class="IA_Box" data-dshash="ry0lz3ZVf1G" data-btns="default" data-title="Veranstaltung"></div>
+             <div class="IA_Box" data-dshash="Byigf2ZEfJf" data-sub="true" data-btns="preview+clear+save+copy"></div>
+             <div class="IA_Box" data-dshash="SyqlG3b4Mkf" data-sub="true">
+                 <script>
+                     function downloadClick(response) {
+                         console.log("Download");
+                         console.log(response);
+                     }
+                     function closeClick(response) {
+                         console.log("Close panel");
+                         $("#panel-" + response["panelId"]).hide("slow");
+                     }
+                 </script>
+                 <div class="IA_Btn" data-name="Download" data-icon="file_download" data-createjsonld="true"
+                      data-onclick=downloadClick></div>
+                 <div class="IA_Btn" data-name="Close" data-icon="close" data-createjsonld="false"
+                      data-onclick=closeClick></div>
+             </div>
+
+         </div>
+     </div>
+ </div>
 
 
-    <style>
-        h1,h4{
-            color: rgb(51, 51, 51);
-            font-family: Roboto, Helvetica, Arial, sans-serif;
-        }
+ <!-- load script for instant annotations-->
+ <script  src="./javascript/instantAnnotations.js"></script>
 
-        h1{
-            font-size: 40px !important;
-            font-weight: bold;
-        }
+ <script>
 
-        h4{
-            font-size: 18px;
-            font-family: Roboto, Helvetica, Arial, sans-serif;
-            font-weight: 300;
-        }
+     var settings = {
+         wp:false,
+         colClass: "col-lg-3 col-md-4 col-sm-6 col-xs-12",
+         panelId: "IAPanel0",
+         wp: false
+     };
 
-        h1, h2, h3, h4, h5 {
-            margin: 5px !important;
-        }
+     IA_Init(settings);
 
-        a, a:focus, a:hover {
-            color:#009688;
-        }
+ </script>
 
-        .container {
-            padding-right: 15px;
-            padding-left: 15px;
-            margin-right: auto;
-            margin-left: auto;
-        }
+ </body>
 
-        @media (min-width:768px) {
-            .container {
-                width: 750px
-            }
-        }
-
-        @media (min-width:992px) {
-            .container {
-                width: 970px
-            }
-        }
-
-        @media (min-width:1200px) {
-            .container {
-                width: 1170px
-            }
-        }
-
-        .btn-group-vertical > .btn-group::after, .btn-group-vertical > .btn-group::before, .btn-toolbar::after, .btn-toolbar::before, .clearfix::after, .clearfix::before, .container-fluid::after, .container-fluid::before, .container::after, .container::before, .dl-horizontal dd::after, .dl-horizontal dd::before, .form-horizontal .form-group::after, .form-horizontal .form-group::before, .modal-footer::after, .modal-footer::before, .modal-header::after, .modal-header::before, .nav::after, .nav::before, .navbar-collapse::after, .navbar-collapse::before, .navbar-header::after, .navbar-header::before, .navbar::after, .navbar::before, .pager::after, .pager::before, .panel-body::after, .panel-body::before, .row::after, .row::before {
-            display:table;
-            content:" ";
-        }
-
-        .btn-group-vertical > .btn-group::after, .btn-toolbar::after, .clearfix::after, .container-fluid::after, .container::after, .dl-horizontal dd::after, .form-horizontal .form-group::after, .modal-footer::after, .modal-header::after, .nav::after, .navbar-collapse::after, .navbar-header::after, .navbar::after, .pager::after, .panel-body::after, .row::after {
-            clear:both;
-        }
-
-        .container-fluid > .navbar-collapse, .container-fluid > .navbar-header,
-        .container > .navbar-collapse, .container > .navbar-header {
-            margin-right: -15px;
-            margin-left: -15px
-        }
-
-        @media (min-width:768px) {
-            .container-fluid > .navbar-collapse, .container-fluid > .navbar-header,
-            .container > .navbar-collapse, .container > .navbar-header {
-                margin-right: 0;
-                margin-left: 0
-            }
-        }
-
-        body {
-            background-color:#EEE;
-        }
-
-    </style>
-
-
-
-    <title>Instant Annotation Demo</title>
-</head>
-<body>
-
-
-<br/>
-<div class="container">
-    <h1>Instant Annotation Demo</h1>
-    <br/>
-    <h4>Confused or need help, check out the documentation on github:
-        <a target="_blank" href="https://github.com/semantifyit/instant_annotator">README</a>
-    </h4>
-    <br/>
-    <div class="semantify-instant-annotations">
-        <div class="row">
-            <div class="IA_Box" data-dshash="ry0lz3ZVf1G" data-btns="default" data-title="Veranstaltung"></div>
-            <div class="IA_Box" data-dshash="Byigf2ZEfJf" data-sub="true" data-btns="preview+clear+save+copy"></div>
-            <div class="IA_Box" data-dshash="SyqlG3b4Mkf" data-sub="true">
-                <script>
-                    function downloadClick(response) {
-                        console.log("Download");
-                        console.log(response);
-                    }
-                    function closeClick(response) {
-                        console.log("Close panel");
-                        $("#panel-" + response["panelId"]).hide("slow");
-                    }
-                </script>
-                <div class="IA_Btn" data-name="Download" data-icon="file_download" data-createjsonld="true"
-                     data-onclick=downloadClick></div>
-                <div class="IA_Btn" data-name="Close" data-icon="close" data-createjsonld="false"
-                     data-onclick=closeClick></div>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-
-</body>
-
-</html>
+ </html>

@@ -2,7 +2,7 @@
 
 
 /* we use sandbox, so all funcitons are here as local */
-this.IA_Init = function(){
+this.IA_Init = function(settings){
 
     /* our dependecies */
     var depScripts = [
@@ -30,8 +30,9 @@ this.IA_Init = function(){
         /* History */
         ['ax5','https://cdn.rawgit.com/ax5ui/ax5core/master/dist/ax5core.min.js'],
         /* <!-- History --> */
-        ['$.fn.datetimepicker','https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js']
-
+        ['$.fn.datetimepicker','https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js'],
+        /* semantify api */
+        ["SemantifyIt","https://cdn.rawgit.com/semantifyit/semantify-api-js/master/semantify.js"]
     ];
 
     /* well we have to use globaliterator (but only in this scope limited in self call function)
@@ -40,7 +41,12 @@ this.IA_Init = function(){
      */
     var global_i = 0;
 
+    /* displaying how many scripts are loaded */
+    var loaderId = "ia_instant_annotation_loader_for_loading_scripts_47";
+
+
     /* initialize all dependant scripts */
+    loaderShowHide(true);
     loadDependantScripts();
 
 
@@ -50,10 +56,13 @@ this.IA_Init = function(){
         if(depScripts.length<=global_i){
 
             /* boot instant anotations */
+
+            loaderShowHide(false);
             boot_instant_annotations_enviroment();
             return true;
         }
 
+        updateCount(global_i, depScripts.length);
         /* script properities */
         var scriptName = depScripts[global_i][0];
         var scriptUrl = depScripts[global_i][1];
@@ -113,44 +122,85 @@ this.IA_Init = function(){
     }
 
 
+    function loaderShowHide(showing) {
+
+        var html =
+            '<div id="'+loaderId+'" class="" style="text-align: center; ">' +
+            '<div style="display: inline-block;"><img src="https://semantify.it/images/loading.gif"><div style="font-family: Roboto, Helvetica, Arial, sans-serif; color:#474747;font-weight: 300;">Checking scripts <span id="'+loaderId+'_count">...</span></div></div>' +
+            '</div>';
+
+        if(showing){
+            var node = document.getElementsByClassName("IA_Box")[0];
+
+            if((node!==null) && (node!==undefined)){
+                //console.log(node);
+                node.insertAdjacentHTML('afterend', html);
+            }
+        }else{
+            var node = document.getElementById(loaderId);
+            if(node!==null) {
+                node.remove();
+            }
+        }
+    }
+
+    function updateCount(loaded, from){
+        var node = document.getElementById(loaderId+'_count');
+        if(node!==null) {
+            node.innerHTML=loaded+"/"+from;
+        }
+    }
+
+
 /* enviroment is in function wrapper */
 function boot_instant_annotations_enviroment() {
+    /* jquery support*/
+    var $ = jQuery;
 
-        var $ = jQuery;
-var wp = false;
-var colClass = "";
-if(wp){
-    colClass = "col-lg-4 col-md-6 col-sm-6 col-xs-12";
 
-} else{
-    colClass = "col-lg-3 col-md-4 col-sm-6 col-xs-12";
-}
-var sdoProperties;
-var sdoPropertiesReady = false;
-var sdoClasses;
-var sdoClassesReady = false;
-var panelId = "IAPanel0";
-var panelCount = 0;
 
-var panelRoots = [];
-var typeList = [];
-var inputFields = [];
+    /* wordpress */
+    if(settings.wp===undefined){settings.wp=false;}
 
-var semantifyUrl = "https://semantify.it";
-//semantifyUrl = "http://localhost:8081";
+    /* special for wordpress */
+    if(settings.wp && settings.colClass===undefined){
+        settings.colClass = "col-lg-4 col-md-6 col-sm-6 col-xs-12";
+    }
 
-var semantifyShortUrl = "https://smtfy.it/";
-//semantifyShortUrl = "https://staging.semantify.it/api/annotation/short/";
+    /* if you havent defined a class */
+    if(settings.colClass===undefined){settings.colClass="col-lg-3 col-md-4 col-sm-6 col-xs-12";}
 
-var defaultSemantifyApiKey = "Hkqtxgmkz";
-var saveApiKey = defaultSemantifyApiKey;
-var semantifyToken;
+    /* if you havent defined a class */
+    if(settings.panelId===undefined){settings.panelId="IAPanel0";}
 
-var wordPressSaveBtn = {
-    "name": "Save",
-    "icon": "save",
-    "createJsonLD": true,
-    "onclick": function (res) {
+    /* loading semantify api */
+    var Semantify = new SemantifyIt("Hkqtxgmkz");
+
+    var sdoProperties;
+    var sdoPropertiesReady = false;
+    var sdoClasses;
+    var sdoClassesReady = false;
+    var panelCount = 0;
+
+    var panelRoots = [];
+    var typeList = [];
+    var inputFields = [];
+
+    var semantifyUrl = "https://semantify.it";
+    //semantifyUrl = "http://localhost:8081";
+
+    var semantifyShortUrl = "https://smtfy.it/";
+    //semantifyShortUrl = "https://staging.semantify.it/api/annotation/short/";
+
+    var defaultSemantifyApiKey = "Hkqtxgmkz";
+    var saveApiKey = defaultSemantifyApiKey;
+    var semantifyToken;
+
+    var wordPressSaveBtn = {
+        "name": "Save",
+        "icon": "save",
+        "createJsonLD": true,
+        "onclick": function (res) {
         console.log("wp save");
 
         var bulk = [];
@@ -169,7 +219,10 @@ var wordPressSaveBtn = {
         if (saveApiKey === "" || saveApiKey === undefined || saveApiKey === null) {
             saveApiKey = defaultSemantifyApiKey;
         }
-        httpPostJson(semantifyUrl + "/api/annotation/" + saveApiKey, bulk, function (saveRes) {
+
+        //Semantify.postAnnotation(bulk,function (saveRes) {
+        //httpPostJson(semantifyUrl + "/api/annotation/" + saveApiKey, bulk, function (saveRes) {
+        Semantify.postAnnotation(bulk,function (saveRes) {
             //console.log(saveRes);
             if (saveRes) {
                 snackBarOptions["content"] = "Successfully saved Annotation to semantify.it";
@@ -302,7 +355,8 @@ var saveBtn = {
             timeout: 3000
         };
 
-        httpPostJson(semantifyUrl + "/api/annotation/" + saveApiKey, bulk, function (saveRes) {
+        Semantify.postAnnotation(bulk,function (saveRes) {
+        //httpPostJson(semantifyUrl + "/api/annotation/" + saveApiKey, bulk, function (saveRes) {
             if (saveRes) {
                 snackBarOptions["content"] = "Successfully saved Annotation to semantify.it";
                 $.snackbar(snackBarOptions);
@@ -367,14 +421,18 @@ var saveBtn = {
 
                 $('#IA_preview_textArea').html(syntaxHighlight(JSON.stringify(resp.jsonLd, null, 2)));
                 var addWebsites = function () {
-                    httpGetHeaders(semantifyUrl + "/api/website", {'Authorization': 'Bearer ' + semantifyToken}, function (websiteRes) {
+
+                        Semantify.getWebsites(semantifyToken,function (websiteRes) {
+                        //httpGetHeaders(semantifyUrl + "/api/website", {'Authorization': 'Bearer ' + semantifyToken}, function (websiteRes) {
                         if (websiteRes) {
                             $('#IA_loginSection').after('<div class="list-group" id="IA_my_websites"><h4>Your websites: (Select one to save your annotation to) </h4> </div>');
                             websiteRes.forEach(function (ele) {
                                 $('#IA_my_websites').append('<button type="button" class="list-group-item list-group-item-action" id="IA_' + ele["apiKey"] + '" style="padding: 5px 0">' + ele["name"] + ' (' + ele["domain"] + ')' + '</button>');
                                 $('#IA_' + ele["apiKey"]).click(function () {
                                     $('#IA_my_websites').slideUp(100);
-                                    httpPostJson(semantifyUrl + "/api/annotation/" + ele["apiKey"], bulk, function (newSaveRes) {
+
+                                        Semantify.saveAnnotationToWebsite(bulk, ele["apiKey"], function (newSaveRes) {
+                                        //httpPostJson(semantifyUrl + "/api/annotation/" + ele["apiKey"], bulk, function (newSaveRes) {
                                         if (newSaveRes) {
                                             snackBarOptions["content"] = 'Saved the annotation to: ' + ele["name"] + ' (' + ele["domain"] + ')';
                                             $.snackbar(snackBarOptions);
@@ -449,7 +507,8 @@ var saveBtn = {
                             password: $('#IA_password').val()
                         };
 
-                        httpPostJson(semantifyUrl + "/api/login", credentials, function (loginResp) {
+                        Semantify.login(credentials, function (loginResp) {
+                        //httpPostJson(semantifyUrl + "/api/login", credentials, function (loginResp) {
                             if (loginResp) {
                                 $('#IA_loginSection').slideUp(100);
                                 semantifyToken = loginResp["token"];
@@ -478,12 +537,12 @@ var previewBtn = {
         if (resp.jsonLd === null) {
             return;
         }
-        console.log("preview");
+        //console.log("preview");
         var dummy = document.createElement("div");
         document.body.appendChild(dummy);
         dummy.setAttribute("id", "preview_id");
         $('#preview_id').append(
-            '<div class="bootstrap semantify">' +
+            '<div class="bootstrap semantify semantify-instant-annotations">' +
             '<div class="modal fade" id="previewModal" role="dialog">' +
             '<div class="modal-dialog">' +
             '<div class="modal-content">' +
@@ -508,6 +567,7 @@ var previewBtn = {
             .modal()
             .on('hidden.bs.modal', function () {
                 $(this).remove();
+                //console.log(this);
             });
         $('#IA_simple_preview_copy').click(function () {
             copyStr(JSON.stringify(resp.jsonLd, null, 2));
@@ -555,35 +615,38 @@ function IA_Init() {
         });
 
         $(this).append(
-            '<div id="loading' + panelId + '" class="col-lg-3 col-md-4 col-sm-6 text-center" style="margin: 10px; padding: 10px; background: white; border-radius: 10px;">' +
+            '<div id="loading' + settings.panelId + '" class="col-lg-3 col-md-4 col-sm-6 text-center" style="margin: 10px; padding: 10px; background: white; border-radius: 10px;">' +
             '<img src="' + semantifyUrl + '/images/loading.gif">' +
             '</div>'
         );
 
         (function (id, $jqueryElement) {
             if (dsId) {
-                httpGet(semantifyUrl + "/api/domainSpecification/" + dsId, function (ds) {
+                Semantify.getDomainSpecification(dsId, function (ds) {
+                //httpGet(semantifyUrl + "/api/domainSpecification/" + dsId, function (ds) {
                     ds["hash"] = null;
                     addBox($jqueryElement, id, ds, buttons, sub, title, null);
                 });
             }
             else if (dsHash) {
-                httpGet(semantifyUrl + "/api/domainSpecification/hash/" + dsHash, function (ds) {
+                Semantify.getDomainSpecificationByHash(dsHash, function (ds) {
+                    //httpGet(semantifyUrl + "/api/domainSpecification/hash/" + dsHash, function (ds) {
                     ds["hash"] = dsHash;
                     addBox($jqueryElement, id, ds, buttons, sub, title, null);
                 });
             }
             else if (dsName) {
-                httpGet(semantifyUrl + "/api/domainSpecification/searchName/" + dsName, function (dsList) {
+                Semantify.getDomainSpecificationBySearchName(dsName, function (dsList) {
+                    //httpGet(semantifyUrl + "/api/domainSpecification/searchName/" + dsName, function (dsList) {
                     var ds = dsList[0];
                     ds["hash"] = null;
                     addBox($jqueryElement, id, ds, buttons, sub, title, null);
                 });
             }
-        }(panelId, $(this), sub));
+        }(settings.panelId, $(this), sub));
 
         panelCount++;
-        panelId = "IAPanel" + panelCount;
+        settings.panelId =  + panelCount;
 
     });
 }
@@ -631,6 +694,7 @@ function getButtons(btnString){
 }
 
 function getPropertiesJson() {
+    //Semantify.getFileFromSemantify("assets/data/latest/sdo_properties.min.json", function (data) {
     httpGet("https://semantify.it/assets/data/latest/sdo_properties.min.json", function (data) {
         sdoProperties = data;
         sdoPropertiesReady = true;
@@ -638,7 +702,8 @@ function getPropertiesJson() {
 }
 
 function getClassesJson() {
-    httpGet("https://semantify.it/assets/data/latest/sdo_classes.json", function (data) {
+    //Semantify.getFileFromSemantify("assets/data/latest/sdo_properties.min.json", function (data) {
+        httpGet("https://semantify.it/assets/data/latest/sdo_classes.json", function (data) {
         sdoClasses = data;
         sdoClassesReady = true;
     });
@@ -658,7 +723,8 @@ function getAllInputs(panelId) {
 function fillBox(panelId, UID) {
     $('#panel-'+panelId).data("smtfyAnnId", UID);
     var allInputs = getAllInputs(panelId);
-    httpGet("https://semantify.it/api/annotation/short/" + UID, function (data) {
+    Semantify.getAnnotation(UID, function (data) {
+    //httpGet("https://semantify.it/api/annotation/short/" + UID, function (data) {
         var flatJson = flatten(data);
         $('#sub_' + panelId).val(flatJson['@type']).change();
         allInputs.forEach(function (a) {
@@ -714,7 +780,7 @@ function addBox($jqueryElement, myPanelId, ds, buttons, sub, title, cb) {
 
     var footer = (buttons && buttons.length > 0 ? '<div class="panel-footer text-center" id="panel-footer-' + myPanelId + '"></div>' : '');      //only display footer if there are some buttons
     $jqueryElement.append(
-        '<div class="' + colClass + '" id="panel-' + myPanelId + '">' +
+        '<div class="' + settings.colClass + '" id="panel-' + myPanelId + '">' +
         '<div class="panel panel-info ">'+
         '<div class="panel-heading sti-red"> ' +
         '<h3>' + dsName + '</h3>' +
@@ -1191,4 +1257,4 @@ function httpPostJson(url, json, callback) {
 
 };
 
-}();
+};
