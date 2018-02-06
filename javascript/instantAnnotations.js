@@ -6,7 +6,6 @@ this.IA_Init = function(settings){
 
     /* our dependecies */
     var depScripts = [
-
         /* condidtion and url */
 
         /* jQuery */

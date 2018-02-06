@@ -13,7 +13,7 @@ If you can't find an appropriate field for your information, you can copy and ed
 
 ### How does it work?
 
-The Instant-Annotator uses so-called domain specifications. Those are customisable restrictions on [schema.org](schema.org) types and its properties. Those domain specifications provide the information of required and optional fields, as well as the ranges of schema.org properties.
+The Instant-Annotator uses so-called domain specifications. Those are customizable restrictions on [schema.org](schema.org) types and its properties. Those domain specifications provide the information of required and optional fields, as well as the ranges of schema.org properties.
 
 
 # Adding The Instant-Annotator To Your Website
@@ -45,6 +45,7 @@ This plugin depends on few javascript libraries.
 * [moment.js](https://cdnjs.com/libraries/moment.js/) JS
 * [bootstrap](https://www.bootstrapcdn.com/) JS + CSS
 * [bootstrap-datetimepicker](https://cdnjs.com/libraries/bootstrap-datetimepicker) JS
+* [semantify-api-js](https://github.com/semantifyit/semantify-api-js) JS
 
 The plugin automatically checks if libraries are loaded. If not it will load them, but it takes little bit time. 
 If you want load libraries manually, please include this scripts in your code.
@@ -52,10 +53,10 @@ If you want load libraries manually, please include this scripts in your code.
 ```html
 /* jQuery */
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-/* bootstrap */
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 /* popper */
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+/* bootstrap */
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 /* arrive */
 <script src="https://cdnjs.cloudflare.com/ajax/libs/arrive/2.4.1/arrive.min.js"></script>
 /* ripple */
@@ -72,10 +73,34 @@ If you want load libraries manually, please include this scripts in your code.
 <script src="https://cdn.rawgit.com/ax5ui/ax5core/master/dist/ax5core.min.js"></script>
 /* datepicker */
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+/* semantify api js */
+<script src="https://cdn.rawgit.com/semantifyit/semantify-api-js/master/semantify.js"></script>
+```
+## Initializing instant annotations
+
+You need to initialize instant annotations with this simple piece of code
+
+```html
+<script>
+     IA_Init();
+</script>
 ```
 
+If you would like to change some behavior, you can use settings.
 
 
+```html
+<script>
+var settings = {
+         wp:false,
+         colClass: "col-lg-3 col-md-4 col-sm-6 col-xs-12",
+         panelId: "IAPanel0",
+         wp: false
+     };
+
+     IA_Init(settings);
+</script>
+```
 
 
 ## Adding boxes
@@ -110,7 +135,6 @@ If you can't find an appropriate field for your information, you can copy and ed
 - [SimpleLocalBusiness](https://developers.google.com/search/docs/data-types/local-businesses)
 :Byigf2ZEfJf
 - [SimpleRecipe](https://developers.google.com/search/docs/data-types/recipes)
-<<<<<<< HEAD
 :ry0lz3ZVf1G
 
 It is furthermore possible to customize the box with the help of a few HTML data attributes:
