@@ -32,6 +32,7 @@ this.IA_Init = function(settings){
         ['$.fn.datetimepicker','https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js'],
         /* semantify api */
         ["SemantifyIt","https://cdn.rawgit.com/semantifyit/semantify-api-js/master/semantify.js"]
+        //["SemantifyIt","http://sti.dev/semantify-api-js/semantify.js"]
     ];
 
     /* well we have to use globaliterator (but only in this scope limited in self call function)
@@ -156,8 +157,6 @@ function boot_instant_annotations_enviroment() {
     /* jquery support*/
     var $ = jQuery;
 
-
-
     /* wordpress */
     if(settings.wp===undefined){settings.wp=false;}
 
@@ -173,7 +172,7 @@ function boot_instant_annotations_enviroment() {
     if(settings.panelId===undefined){settings.panelId="IAPanel0";}
 
     /* loading semantify api */
-    var Semantify = new SemantifyIt("Hkqtxgmkz");
+    var Semantify = new SemantifyIt("Hkqtxgmkz", "ef0a64008d0490fc4764c2431ca4797b");
 
     var sdoProperties;
     var sdoPropertiesReady = false;
@@ -222,7 +221,7 @@ function boot_instant_annotations_enviroment() {
         //Semantify.postAnnotation(bulk,function (saveRes) {
         //httpPostJson(semantifyUrl + "/api/annotation/" + saveApiKey, bulk, function (saveRes) {
         Semantify.postAnnotation(bulk,function (saveRes) {
-            //console.log(saveRes);
+            console.log(saveRes);
             if (saveRes) {
                 snackBarOptions["content"] = "Successfully saved Annotation to semantify.it";
                 $("#panel-footer-btn-Save-" + res.panelId).prop('disabled', true);
@@ -355,8 +354,12 @@ var saveBtn = {
         };
 
         Semantify.postAnnotation(bulk,function (saveRes) {
+
+            //console.log("saveRes", saveRes );
+
         //httpPostJson(semantifyUrl + "/api/annotation/" + saveApiKey, bulk, function (saveRes) {
-            if (saveRes) {
+            if (typeof saveRes !== "undefined") {
+
                 snackBarOptions["content"] = "Successfully saved Annotation to semantify.it";
                 $.snackbar(snackBarOptions);
 
@@ -421,18 +424,26 @@ var saveBtn = {
                 $('#IA_preview_textArea').html(syntaxHighlight(JSON.stringify(resp.jsonLd, null, 2)));
                 var addWebsites = function () {
 
+                        console.log(semantifyToken);
+
                         Semantify.getWebsites(semantifyToken,function (websiteRes) {
                         //httpGetHeaders(semantifyUrl + "/api/website", {'Authorization': 'Bearer ' + semantifyToken}, function (websiteRes) {
                         if (websiteRes) {
                             $('#IA_loginSection').after('<div class="list-group" id="IA_my_websites"><h4>Your websites: (Select one to save your annotation to) </h4> </div>');
                             websiteRes.forEach(function (ele) {
-                                $('#IA_my_websites').append('<button type="button" class="list-group-item list-group-item-action" id="IA_' + ele["apiKey"] + '" style="padding: 5px 0">' + ele["name"] + ' (' + ele["domain"] + ')' + '</button>');
-                                $('#IA_' + ele["apiKey"]).click(function () {
+
+                                $('#IA_my_websites').append('<button type="button" class="list-group-item list-group-item-action" id="IA_' + ele["uid"] + '" style="padding: 5px 0">' + ele["name"] + ' (' + ele["domain"] + ')' + '</button>');
+                                $('#IA_' + ele["uid"]).click(function () {
                                     $('#IA_my_websites').slideUp(100);
 
-                                        Semantify.saveAnnotationToWebsite(bulk, ele["apiKey"], function (newSaveRes) {
-                                        //httpPostJson(semantifyUrl + "/api/annotation/" + ele["apiKey"], bulk, function (newSaveRes) {
+                                        console.log("ele", ele);
+
+                                        Semantify.saveAnnotationToWebsite(bulk, ele["uid"], ele["secret"], function (newSaveRes) {
+                                        //httpPostJson(semantifyUrl + "/api/annotation/" + ele["uid"], bulk, function (newSaveRes) {
                                         if (newSaveRes) {
+
+                                            console.log("saved", newSaveRes);
+
                                             snackBarOptions["content"] = 'Saved the annotation to: ' + ele["name"] + ' (' + ele["domain"] + ')';
                                             $.snackbar(snackBarOptions);
                                             $('#IA_toWebsite').append('to website <b>' + ele["name"] + (ele["domain"] ? ' (' + ele["domain"] + ')' : '') + '</b>');
@@ -522,7 +533,7 @@ var saveBtn = {
                 });
             }
             else {
-                snackBarOptions["content"] = "Successfully saved Annotation to semantify.it";
+                snackBarOptions["content"] = "There was an error saving annotation to semantify.it";
                 $.snackbar(snackBarOptions);
             }
         });
