@@ -31,7 +31,7 @@ this.IA_Init = function(settings){
         /* <!-- History --> */
         ['$.fn.datetimepicker','https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js'],
         /* semantify api */
-        ["SemantifyIt","https://cdn.rawgit.com/semantifyit/semantify-api-js/d7fe676d/semantify.js"]
+        ["SemantifyIt","https://rawgit.com/semantifyit/semantify-api-js/master/semantify.js"]
         //["SemantifyIt","http://sti.dev/semantify-api-js/semantify.js"]
     ];
 
