@@ -91,15 +91,13 @@ If you would like to change some behavior, you can use settings.
 
 ```html
 <script>
-var settings = {
-         wp:false,
-         colClass: "col-lg-3 col-md-4 col-sm-6 col-xs-12",
-         panelId: "IAPanel0",
-         wp: false
+     var settings = {
+         wp:false, //(woddpress mode OPTIONAL)
+         colClass: "col-lg-3 col-md-4 col-sm-6 col-xs-12",// (OPTIONAL)
+         panelIdPrefix: "IAPanel", //(the prefix id of the panels OPTIONAL)
+         uid:"YOURUID", //(your website-uid OPTIONAL)
+         secret:"YOURSECRET" //(your website-secret OPTIONAL)
      };
-
-     IA_Init(settings);
-</script>
 ```
 
 

@@ -168,11 +168,18 @@ function boot_instant_annotations_enviroment() {
     /* if you havent defined a class */
     if(settings.colClass===undefined){settings.colClass="col-lg-3 col-md-4 col-sm-6 col-xs-12";}
 
-    /* if you havent defined a class */
-    if(settings.panelId===undefined){settings.panelId="IAPanel0";}
+    /* if you havent defined a Prefix */
+    if(settings.panelIdPrefix===undefined){settings.panelIdPrefix="IAPanel";}
+    settings.panelId=settings.panelIdPrefix;
+
+    /* if you havent defined a uid */
+    if(settings.uid===undefined){settings.uid="Hkqtxgmkz";}
+
+    /* if you havent defined a uid */
+    if(settings.secret===undefined){settings.secret="ef0a64008d0490fc4764c2431ca4797b";}
 
     /* loading semantify api */
-    var Semantify = new SemantifyIt("Hkqtxgmkz", "ef0a64008d0490fc4764c2431ca4797b");
+    var Semantify = new SemantifyIt(settings.uid, settings.secret);
 
     var sdoProperties;
     var sdoPropertiesReady = false;
@@ -218,7 +225,6 @@ function boot_instant_annotations_enviroment() {
             saveApiKey = defaultSemantifyApiKey;
         }
 
-        //Semantify.postAnnotation(bulk,function (saveRes) {
         //httpPostJson(semantifyUrl + "/api/annotation/" + saveApiKey, bulk, function (saveRes) {
         Semantify.postAnnotation(bulk,function (saveRes) {
             console.log(saveRes);
@@ -354,9 +360,6 @@ var saveBtn = {
         };
 
         Semantify.postAnnotation(bulk,function (saveRes) {
-
-            //console.log("saveRes", saveRes );
-
         //httpPostJson(semantifyUrl + "/api/annotation/" + saveApiKey, bulk, function (saveRes) {
             if (typeof saveRes !== "undefined") {
 
@@ -423,8 +426,6 @@ var saveBtn = {
 
                 $('#IA_preview_textArea').html(syntaxHighlight(JSON.stringify(resp.jsonLd, null, 2)));
                 var addWebsites = function () {
-
-                        console.log(semantifyToken);
 
                         Semantify.getWebsites(semantifyToken,function (websiteRes) {
                         //httpGetHeaders(semantifyUrl + "/api/website", {'Authorization': 'Bearer ' + semantifyToken}, function (websiteRes) {
@@ -625,7 +626,7 @@ function IA_Init() {
         });
 
         $(this).append(
-            '<div id="loading' + settings.panelId + '" class="col-lg-3 col-md-4 col-sm-6 text-center" style="margin: 10px; padding: 10px; background: white; border-radius: 10px;">' +
+            '<div id="loading' + settings.panelId +'" class="col-lg-3 col-md-4 col-sm-6 text-center" style="margin: 10px; padding: 10px; background: white; border-radius: 10px;">' +
             '<img src="' + semantifyUrl + '/images/loading.gif">' +
             '</div>'
         );
@@ -656,7 +657,8 @@ function IA_Init() {
         }(settings.panelId, $(this), sub));
 
         panelCount++;
-        settings.panelId =  + panelCount;
+        settings.panelId =  settings.panelIdPrefix+panelCount.toString();
+
 
     });
 }
@@ -788,7 +790,7 @@ function addBox($jqueryElement, myPanelId, ds, buttons, sub, title, cb) {
     var dsType = curDs["dsv:class"][0]["schema:name"];
 
 
-    var footer = (buttons && buttons.length > 0 ? '<div class="panel-footer text-center" id="panel-footer-' + myPanelId + '"></div>' : '');      //only display footer if there are some buttons
+    var footer = (buttons && buttons.length > 0 ? '<div class="panel-footer text-center"  style="background-image: url(https://semantify.it/images/logo_image.png);background-repeat: no-repeat;background-size: 30px 30px; background-position: right 4px bottom 4px; " id="panel-footer-' + myPanelId + '"></div>' : '');      //only display footer if there are some buttons
     $jqueryElement.append(
         '<div class="' + settings.colClass + '" id="panel-' + myPanelId + '">' +
         '<div class="panel panel-info ">'+
@@ -849,7 +851,7 @@ function addBox($jqueryElement, myPanelId, ds, buttons, sub, title, cb) {
 
         $('#panel-body-opt-' + myPanelId).slideUp(0);
         if (sub === true) {
-            var subClasses = getSubClasses(dsType).sort();
+            var subClasses = getSubClasses(ds.content['dsv:class'],dsType).sort();
             $("#panel-body-" + myPanelId).append('<select name="select" class="form-control input-myBackground input-mySelect" id="' + "sub_" + myPanelId + '" title="Select a sub-class if you want to specify further">');
             var dropdown = $('#' + 'sub_' + myPanelId);
             dropdown.append('<option value="' + dsType + '">Default: ' + dsType + '</option>');
@@ -928,17 +930,19 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
         case "Date":
             $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
             $('#' + id).datetimepicker({
-                format: 'L'
+                format: 'YYYY-MM-DD'
             });
             break;
         case "DateTime":
             $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-            $('#' + id).datetimepicker();
+            $('#' + id).datetimepicker({
+                format: 'YYYY-MM-DDTHH:mm'
+            });
             break;
         case "Time":
             $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
             $('#' + id).datetimepicker({
-                format: 'LT'
+                format: 'HH:mm'
             });
             break;
         case "Enumeration":
@@ -1043,6 +1047,7 @@ function createJsonLd(id) {
     var allRequired = true; //variable gets false if an required field is empty
     var allRequiredPaths = true; //variable gets false if an optional field is filled in that has required properties
     var allInputs = []; //all input ids from same panel
+    var notFilledRequired=[]; //all inputFields that are not filled but required
     var msgs = [];
 
     inputFields.forEach(function (a) {
@@ -1060,6 +1065,7 @@ function createJsonLd(id) {
         var rootOptional = $inputField.data("rootIsOptional");
         if ((value === undefined || value === null || value === "" || value.length === 0 || value.length == undefined) && (optional === false && rootOptional === false)) { //if variable is not optional but empty
             allRequired = false;
+            notFilledRequired.push($inputField);
         }
         if ((value != undefined && value != null && value != "" && value.length != 0 && value.length != undefined) && rootOptional === true) {
             //check if all other paths and sub paths are filled in - else false allRequiredPaths
@@ -1125,10 +1131,25 @@ function createJsonLd(id) {
         return resultJson;
     } else {
         if (!allRequired) {
+            notFilledRequired.forEach(function(f){
+                f.css({"border": "1px solid rgba(255, 0, 0, 1)","box-shadow": "0 0 10px rgba(255, 0, 0, 1)"});
+                setTimeout(
+                    function() {f.css({"border": "","box-shadow": ""}); },
+                    3000
+                );
+            });
             send_snackbarMSG("Please fill in all required fields", 3000);
         } else {
             msgs = htmlList(unique(msgs));
             send_snackbarMSG("Please also fill in <ul>" + msgs.join("") + "</ul>", 3000 + (msgs.length - 1) * 1000);
+            msgs.forEach(function(n){
+                var g=$('#IA_'+id+'_'+n.replace(/<(?:.|\n)*?>/gm, ''));
+                g.css({"border": "1px solid rgba(255, 0, 0, 1)","box-shadow": "0 0 10px rgba(255, 0, 0, 1)"});
+                setTimeout(
+                    function() {g.css({"border": "","box-shadow": ""}); },
+                    3000
+                );
+            });
         }
         return null;
     }
@@ -1178,17 +1199,15 @@ function syntaxHighlight(json) {
     });
 }
 
-function getSubClasses(type) {
-    var subClasses = [];
-    if (sdoClasses.hasOwnProperty(type))
-        if (sdoClasses[type].hasOwnProperty("subClasses")) {
-            subClasses = subClasses.concat(sdoClasses[type]["subClasses"]);
-            subClasses.forEach(function (subclass) {
-                subClasses = subClasses.concat(getSubClasses(subclass));
-            });
-        }
-    return subClasses;
-}
+    function getSubClasses(classes,base) {
+        var subClasses = [];
+        classes.forEach(function (c){
+            if(base!==c['schema:name']){
+                subClasses.push(c['schema:name']);
+            }
+        });
+        return subClasses;
+    }
 
 function unique(list) {
     var result = [];
