@@ -789,8 +789,12 @@ function addBox($jqueryElement, myPanelId, ds, buttons, sub, title, cb) {
     var dsName = (title ? title : (curDs === undefined ? "DS not found" : curDs["schema:name"]));
     var dsType = curDs["dsv:class"][0]["schema:name"];
 
-
-    var footer = (buttons && buttons.length > 0 ? '<div class="panel-footer text-center"  style="background-image: url(https://semantify.it/images/logo_image.png);background-repeat: no-repeat;background-size: 30px 30px; background-position: right 4px bottom 4px; " id="panel-footer-' + myPanelId + '"></div>' : '');      //only display footer if there are some buttons
+    var footer = (buttons && buttons.length > 0 ? '<div class="panel-footer text-center" id="panel-footer-' + myPanelId + '"><a href="https://semantify.it" ' +
+        'style=" position: absolute;\n' +
+        '    bottom: 25px;\n' +
+        '    right: 18px;">' +
+        '<img style="height:15px;-webkit-filter: invert(1);  filter: invert(1);" src="https://semantify.it/wp-content/themes/semantify-wordpress-theme/assets/img/logo-white.svg"></a></div>' : '');      //only display footer if there are some buttons
+    // var footer = (buttons && buttons.length > 0 ? '<div class="panel-footer text-center"  style="background-image: url(https://semantify.it/wp-content/themes/semantify-wordpress-theme/assets/img/logo.svg);background-repeat: no-repeat; background-size: 50px; background-position: right 4px bottom 4px; " id="panel-footer-' + myPanelId + '"></div>' : '');      //only display footer if there are some buttons
     $jqueryElement.append(
         '<div class="' + settings.colClass + '" id="panel-' + myPanelId + '">' +
         '<div class="panel panel-info ">'+
