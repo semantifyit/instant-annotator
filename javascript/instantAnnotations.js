@@ -1,3 +1,7 @@
+/*!
+ * Licensed under MIT (https://github.com/semantifyit/instant-annotator/blob/master/LICENSE.txt)
+*/
+
 "use strict";
 
 
