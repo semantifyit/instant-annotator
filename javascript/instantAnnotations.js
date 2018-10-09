@@ -1,7 +1,7 @@
 "use strict";
 
 
-/* we use sandbox, so all funcitons are here as local */
+/* we use sandbox, so all functions are here as local */
 this.IA_Init = function(settings){
 
     /* our dependecies */
