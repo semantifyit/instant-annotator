@@ -157,14 +157,6 @@ function boot_instant_annotations_enviroment() {
     /* jquery support*/
     var $ = jQuery;
 
-    /* wordpress */
-    if(settings.wp===undefined){settings.wp=false;}
-
-    /* special for wordpress */
-    if(settings.wp && settings.colClass===undefined){
-        settings.colClass = "col-lg-4 col-md-6 col-sm-6 col-xs-12";
-    }
-
     /* if you havent defined a class */
     if(settings.colClass===undefined){settings.colClass="col-lg-3 col-md-4 col-sm-6 col-xs-12";}
 
@@ -596,9 +588,6 @@ function getButtons(btnString){
                         break;
                     case "copy":
                         buttons.push(copyBtn);
-                        break;
-                    case "wpsave":
-                        buttons.push(wordPressSaveBtn);
                         break;
                 }
             });
