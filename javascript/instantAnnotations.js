@@ -687,7 +687,8 @@ function addBox($jqueryElement, myPanelId, ds, buttons, sub, title, cb) {
         'style=" position: absolute;\n' +
         '    bottom: 25px;\n' +
         '    right: 18px;">' +
-        '<img style="height:15px;-webkit-filter: invert(1);  filter: invert(1);" src="https://semantify.it/wp-content/themes/semantify-wordpress-theme/assets/img/logo-white.svg"></a></div>' : '');      //only display footer if there are some buttons
+        '<img title="semantify.it" style="height:15px;-webkit-filter: grayscale(100%);'+
+        'filter: grayscale(100%);" src="https://semantify.it/images/logo_image.png"></a></div>' : '');      //only display footer if there are some buttons
     // var footer = (buttons && buttons.length > 0 ? '<div class="panel-footer text-center"  style="background-image: url(https://semantify.it/wp-content/themes/semantify-wordpress-theme/assets/img/logo.svg);background-repeat: no-repeat; background-size: 50px; background-position: right 4px bottom 4px; " id="panel-footer-' + myPanelId + '"></div>' : '');      //only display footer if there are some buttons
     $jqueryElement.append(
         '<div class="' + settings.colClass + '" id="panel-' + myPanelId + '">' +
@@ -814,16 +815,14 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
 
             break;
         case "Boolean":
-            $(panel + panelId).append('<input type="checkbox" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '"><label for=' + id + '>' + name + '</label>');
-            $("#" + id)
-                .val("false")
-                .on('change', function () {
-                    if ($(this).is(':checked')) {
-                        $(this).attr('value', 'true');
-                    } else {
-                        $(this).attr('value', 'false');
-                    }
-                });
+            $(panel + panelId).append('<select style="color:#aaa" name="select" class="form-control input-myBackground" id="' + id + '" title=" ' + desc + '"></select>');
+            $('#' + id).append('<option value="" selected style="color:#aaa">'+ name + '</option><option  style="color:#000" value="true">true</option><option style="color:#000" value="false">false</option>');
+
+            $('#' + id).change(function(){
+              if ($(this).val()=="") $(this).css({color: "#aaa"});
+              else $(this).css({color: "#000"});
+            });
+
             break;
         case "Date":
             $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
