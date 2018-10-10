@@ -626,22 +626,6 @@ function getAllInputs(panelId) {
     return allInputs;
 }
 
-function fillBox(panelId, UID) {
-    $('#panel-'+panelId).data("smtfyAnnId", UID);
-    var allInputs = getAllInputs(panelId);
-    //Semantify.getAnnotation(UID, function (data) {
-    httpGet("https://semantify.it/api/annotation/short/" + UID, function (data) {
-        var flatJson = flatten(data);
-        $('#sub_' + panelId).val(flatJson['@type']).change();
-        allInputs.forEach(function (a) {
-            var $inputField = $("#" + a);
-            var path = $inputField.data("name");
-            var tempValue = flatJson[path.replace(/-/g, ".")];
-            $inputField.val(tempValue);
-        });
-    });
-}
-
 function flatten(o) {
     var prefix = arguments[1] || "", out = arguments[2] || {}, name;
     for (name in o) {
@@ -846,12 +830,17 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
             if (multipleValuesAllowed) {
                 $(panel + panelId).append('<select multiple name="select" class="form-control input-myBackground input-mySelect" id="' + id + '" title=" ' + "You can add more than one value by pressing *Ctrl* \n\n" + desc + '">');
             } else {
-                $(panel + panelId).append('<select name="select" class="form-control input-myBackground" id="' + id + '" title=" ' + desc + '">');
-            }
+
+                $(panel + panelId).append('<select style="color:#aaa" name="select" class="form-control input-myBackground" id="' + id + '" title=" ' + desc + '">');
+                $('#' + id).change(function(){
+                  if ($(this).val()=="") $(this).css({color: "#aaa"});
+                  else $(this).css({color: "#000"});
+                });
+          }
             var enumField = $('#' + id);
-            enumField.append('<option value="" disabled selected>Select: ' + name + '</option>');
+            enumField.append('<option value="" selected style="color:#aaa">Select: ' + name + '</option>');
             enumerations.forEach(function (e) {
-                enumField.append('<option value="' + e + '">' + e + '</option>');
+                enumField.append('<option style="color:#000" value="' + e + '">' + e + '</option>');
             });
             enumField.append('</select>');
             break;
