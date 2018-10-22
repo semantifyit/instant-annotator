@@ -37,9 +37,9 @@ Also same for javascript:
 ```
 
 
-### Javascript Dependencies
-This plugin depends on few javascript libraries. 
+#### Javascript Dependencies -- OPTIONAL
 
+>This plugin depends on few javascript libraries. They are loaded automatically, but if you want to load them by yourself, you could also do it.
 * [jquery](https://code.jquery.com/) JS
 * [snackbarjs](https://cdnjs.com/libraries/snackbarjs) JS + CSS
 * [moment.js](https://cdnjs.com/libraries/moment.js/) JS
@@ -47,7 +47,7 @@ This plugin depends on few javascript libraries.
 * [bootstrap-datetimepicker](https://cdnjs.com/libraries/bootstrap-datetimepicker) JS
 * [semantify-api-js](https://github.com/semantifyit/semantify-api-js) JS
 
-The plugin automatically checks if libraries are loaded. If not it will load them, but it takes little bit time. 
+>The plugin automatically checks if libraries are loaded. If not it will load them, but it takes little bit time. 
 If you want load libraries manually, please include this scripts in your code.
 
 ```html
