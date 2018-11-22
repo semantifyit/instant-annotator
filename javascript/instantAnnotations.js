@@ -856,7 +856,6 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
 }
 
 function getDesc(propertyName,fullPath) {
-    console.log (propertyName)
     if(sdoProperties[propertyName]){
         return stripHtml(fullPath+':\n'+sdoProperties[propertyName]["description"]);
     }else{
