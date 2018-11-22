@@ -856,7 +856,12 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
 }
 
 function getDesc(propertyName,fullPath) {
-    return stripHtml(fullPath+':\n'+sdoProperties[propertyName]["description"]);
+    console.log (propertyName)
+    if(sdoProperties[propertyName]){
+        return stripHtml(fullPath+':\n'+sdoProperties[propertyName]["description"]);
+    }else{
+        return stripHtml(fullPath+':\n'+'Sorry, no description available!');
+    }
 }
 
 function stripHtml(html) {
