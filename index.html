@@ -105,7 +105,7 @@
          <div class="row">
              <div class="IA_Box" data-dshash="ry0lz3ZVf1G" data-btns="default" data-title="Veranstaltung"></div>
              <div class="IA_Box" data-dshash="Byigf2ZEfJf" data-sub="true" data-btns="preview+clear+save+copy"></div>
-             <div class="IA_Box" data-dshash="SyqlG3b4Mkf" data-sub="true">
+             <div id="123" class="IA_Box" data-dshash="SyqlG3b4Mkf" data-sub="true" data-annotation="">
                  <script>
                      function downloadClick(response) {
                          console.log("Download");
@@ -138,6 +138,7 @@
          uid:undefined, //your website-uid OPTIONAL
          secret:undefined //your website-secret OPTIONAL
      };
+     document.getElementById('123').dataset.annotation = JSON.stringify({description: 'desc', name: 'hello', startDate: 'fo', '@type': 'ola', location: {address:{streetAddress: 'daheim'}}});
 
      IA_Init(settings);
 

@@ -510,6 +510,7 @@ function IA_Init() {
         var buttonsChoice = $(this).data("btns");
         var sub = $(this).data("sub");
         var title = $(this).data("title");
+        var annotation = $(this).data("annotation");
 
         var buttons = getButtons(buttonsChoice);
 
@@ -531,19 +532,29 @@ function IA_Init() {
             '</div>'
         );
 
+
+        var panelId = settings.panelId;
+
+        function boxDone() {
+            if(!annotation) {
+                return;
+            }
+            fillWithAnnotation(panelId, annotation);
+        }
+
         (function (id, $jqueryElement) {
             if (dsId) {
                 //Semantify.getDomainSpecification(dsId, function (ds) {
                 httpGet(semantifyUrl + "/api/domainSpecification/" + dsId, function (ds) {
                     ds["hash"] = null;
-                    addBox($jqueryElement, id, ds, buttons, sub, title, null);
+                    addBox($jqueryElement, id, ds, buttons, sub, title, boxDone);
                 });
             }
             else if (dsHash) {
                 //Semantify.getDomainSpecificationByHash(dsHash, function (ds) {
                 httpGet(semantifyUrl + "/api/domainSpecification/hash/" + dsHash, function (ds) {
                     ds["hash"] = dsHash;
-                    addBox($jqueryElement, id, ds, buttons, sub, title, null);
+                    addBox($jqueryElement, id, ds, buttons, sub, title, boxDone);
                 });
             }
             else if (dsName) {
@@ -551,7 +562,7 @@ function IA_Init() {
                 httpGet(semantifyUrl + "/api/domainSpecification/searchName/" + dsName, function (dsList) {
                     var ds = dsList[0];
                     ds["hash"] = null;
-                    addBox($jqueryElement, id, ds, buttons, sub, title, null);
+                    addBox($jqueryElement, id, ds, buttons, sub, title, boxDone);
                 });
             }
         }(settings.panelId, $(this), sub));
@@ -1176,6 +1187,23 @@ function httpCall(method, url, contentType, headers, json, cb) {
         }
     });
 }
+
+
+function fillWithAnnotation(panelId, data){
+    var allInputs = getAllInputs(panelId);
+    var flatJson = flatten(data);
+    allInputs.forEach(function (a) {
+        var $inputField = $("#" + a);
+        var path = $inputField.data("name");
+        var tempValue = flatJson[path.replace(/-/g, ".")];
+        /*if(tempValue!==undefined && tempValue.length>0){
+            tempValue=tempValue.replace('http://schema.org/','');
+        }*/
+        $inputField.val(tempValue);
+    });
+}
+
+
 };
 
 };
