@@ -612,7 +612,7 @@ function getButtons(btnString){
 
 function getPropertiesJson() {
     //Semantify.getFileFromSemantify("assets/data/latest/sdo_properties.min.json", function (data) {
-    httpGet("https://semantify.it/assets/data/latest/sdo_properties.min.json", function (data) {
+    httpGet("https://semantify.it/assets/data/latest/sdo_properties.json", function (data) {
         sdoProperties = data;
         sdoPropertiesReady = true;
     });
