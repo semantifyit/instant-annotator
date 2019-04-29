@@ -500,7 +500,7 @@ function IA_Init() {
     if(!sdoClassesReady)
         getClassesJson();
 
-    $('.IA_Box').each(function () {
+    $('.IA_Box').each(function (index) {
         if($(this).data('init') === "true")
             return;
         $(this).data('init', "true");
@@ -526,14 +526,14 @@ function IA_Init() {
             }
         });
 
+        var panelId = settings.panelIdPrefix + index;
+
+
         $(this).append(
-            '<div id="loading' + settings.panelId +'" class="col-lg-3 col-md-4 col-sm-6 text-center" style="margin: 10px; padding: 10px; background: white; border-radius: 10px;">' +
+            '<div id="loading' + panelId +'" class="col-lg-3 col-md-4 col-sm-6 text-center" style="margin: 10px; padding: 10px; background: white; border-radius: 10px;">' +
             '<img src="' + semantifyUrl + '/images/loading.gif">' +
             '</div>'
         );
-
-
-        var panelId = settings.panelId;
 
         function boxDone() {
             if(!annotation) {
@@ -565,11 +565,10 @@ function IA_Init() {
                     addBox($jqueryElement, id, ds, buttons, sub, title, boxDone);
                 });
             }
-        }(settings.panelId, $(this), sub));
+        }(panelId, $(this), sub));
 
-        panelCount++;
-        settings.panelId =  settings.panelIdPrefix+panelCount.toString();
-
+        //panelCount++;
+        //settings.panelId =  settings.panelIdPrefix+panelCount.toString();
 
     });
 }
