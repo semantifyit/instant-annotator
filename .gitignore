@@ -6,6 +6,8 @@ test1.txt
 data/*
 .idea/*
 
+misc
+
 # backup folder
 backup/
 
