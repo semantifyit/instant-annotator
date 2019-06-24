@@ -1111,8 +1111,8 @@ function syntaxHighlight(json) {
 }
 
 function getAllSubClasses(base) {
-    var subClasses = sdoClasses[base].subClasses;
-    subClasses.forEach(function(c) {
+    var subClasses = clone(sdoClasses[base].subClasses);
+    subClasses.forEach(function (c) {
         subClasses = subClasses.concat(getAllSubClasses(c));
     });
     subClasses.push(base);
@@ -1201,6 +1201,9 @@ function httpCall(method, url, contentType, headers, json, cb) {
     });
 }
 
+function clone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+}
 
 function fillWithAnnotation(panelId, data){
     var allInputs = getAllInputs(panelId);
