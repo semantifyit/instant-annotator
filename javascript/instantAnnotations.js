@@ -979,9 +979,9 @@ this.IA_Init = function(settings) {
                         }
                     });
                 })(myPanelId);
-                  opt_props.forEach(function (p) {
+                  for (var p of opt_props) {
                       insertInputField(myPanelId, p["name"], getDesc(p["simpleName"],p["name"]), p["type"], p["enums"], "#panel-body-opt-", p["isOptional"], p["rootIsOptional"], p["multipleValuesAllowed"])
-                  });
+                  }
                 }
                 $('#panel-body-opt-' + myPanelId).slideUp(0);
                 if (sub === true) {
@@ -1230,14 +1230,14 @@ this.IA_Init = function(settings) {
         var notFilledRequired = []; //all inputFields that are not filled but required
         var msgs = [];
 
-        inputFields.forEach(function (a) {
+        for (var a of inputFields) {
             var compareId = a.slice(a.indexOf("_") + 1, a.indexOf("_", a.indexOf("_") + 1));
             if (compareId === id.toString()) { //only inputs from same panel
                 allInputs.push(a);
             }
-        });
+        };
 
-        allInputs.forEach(function (a) {
+        for (var a of allInputs) {
             var $inputField = $("#" + a);
             var value = $inputField.val();
             var path = $inputField.data("name");
@@ -1305,7 +1305,7 @@ this.IA_Init = function(settings) {
                 resultJson = set(resultJson, path, value)
             }
 
-        });
+        }
         if (allRequired && allRequiredPaths) {
             //var result = (JSON.stringify(resultJson));
             return resultJson;
@@ -1361,6 +1361,9 @@ this.IA_Init = function(settings) {
     }
 
     function syntaxHighlight(json) {
+        if(typeof json === 'object'){
+          json=JSON.stringify(json);
+        }
         json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
             var cls = 'number';
@@ -1541,4 +1544,3 @@ this.IA_Init = function(settings) {
         IAsemantify_Init();
     }
 };
-IA_Init();
