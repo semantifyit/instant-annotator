@@ -778,12 +778,13 @@ this.IA_Init = function(settings) {
 
     function getAllInputs(panelId) {
         var allInputs = [];
-        inputFields.forEach(function (a) {
-            var compareId = a.slice(a.indexOf("_") + 1, a.indexOf("_", a.indexOf("_") + 1));
-            if (compareId === panelId.toString()) { //only inputs from same panel
-                allInputs.push(a);
-            }
-        });
+
+        for (var a of inputFields){
+          var compareId = a.slice(a.indexOf("_") + 1, a.indexOf("_", a.indexOf("_") + 1));
+          if (compareId === panelId.toString()) { //only inputs from same panel
+              allInputs.push(a);
+          }
+        }
         return allInputs;
     }
 
@@ -817,8 +818,16 @@ this.IA_Init = function(settings) {
                 } else {
                     if (hasDS) {
                         var flatJson = flatten(data);
-                        $('#sub_' + panelId).val(flatJson['@type']).change();
-                        allInputs.forEach(function (a) {
+                        if(Array.isArray(data['@type'])){
+                          var i=0;
+                          for(var t of data['@type']){
+                            $('#sub_' + panelId+'_'+i).val(t).change();
+                            i++;
+                          }
+                        }else{
+                          $('#sub_' + panelId).val(flatJson['@type']).change();
+                        }
+                        for (var a of allInputs) {
                             var $inputField = $("#" + a);
                             var path = $inputField.data("name");
                             var tempValue = flatJson[path.replace(/-/g, ".")];
@@ -826,7 +835,7 @@ this.IA_Init = function(settings) {
                                 tempValue = tempValue.replace('http://schema.org/', '');
                             }
                             $inputField.val(tempValue);
-                        });
+                        };
                     } else {
                         $("#panel-body-" + panelId).append('This annotation does not have any Domain Specification. Therefore you won`t be able to edit it.');
                         $("#panel-footer-btn-Preview-" + panelId).prop("already_annotation_created", data);
@@ -856,7 +865,7 @@ this.IA_Init = function(settings) {
             var o = queue.shift();
 
             found = Object.keys(o).some(function (k) {
-                if (o[k] instanceof Array)
+                if (k!=='@type' && o[k] instanceof Array && k!=='@context')
                     return true;
 
                 if (o[k] !== null && typeof o[k] === 'object')
@@ -922,7 +931,15 @@ this.IA_Init = function(settings) {
             '</div>');
 
         if (ds) {
-            var dsType = removeNS(curDs["sh:targetClass"]);
+            var dsType;
+            if(Array.isArray(curDs["sh:targetClass"])){
+              dsType = [];
+              for (var i of curDs["sh:targetClass"]){
+                dsType.push(removeNS(i));
+              }
+            }else{
+              dsType = removeNS(curDs["sh:targetClass"]);
+            }
             var t = {
                 "panelId": myPanelId,
                 "name": dsName,
@@ -935,18 +952,17 @@ this.IA_Init = function(settings) {
             var opt_props = [];
             var props = getProps(dsProps, "", dsType, myPanelId, false);
 
-            props.forEach(function (prop) {
+            for (var prop of props) {
                 if (!prop["isOptional"] && !prop["rootIsOptional"]) {
                     req_props.push(prop)
                 } else {
                     opt_props.push(prop)
                 }
-            });
+            }
 
-            req_props.forEach(function (p) {
+            for (var p of req_props){
                 insertInputField(myPanelId, p["name"], getDesc(p["simpleName"],p["name"]), p["type"], p["enums"], "#panel-body-", p["isOptional"], p["rootIsOptional"], p["multipleValuesAllowed"])
-            });
-
+            }
             if (opt_props.length > 0) {
                 $('#' + 'panel-body-' + myPanelId)
                     .append('<button type="button" class="btn btn-block btn-default text-left" id="panel-body-opt-btn-' + myPanelId + '" style="background-color: lightgrey;">Optional<span class="caret"></button>')
@@ -963,13 +979,27 @@ this.IA_Init = function(settings) {
                         }
                     });
                 })(myPanelId);
-
-                opt_props.forEach(function (p) {
-                    insertInputField(myPanelId, p["name"], getDesc(p["simpleName"],p["name"]), p["type"], p["enums"], "#panel-body-opt-", p["isOptional"], p["rootIsOptional"], p["multipleValuesAllowed"])
-                });
-
+                  opt_props.forEach(function (p) {
+                      insertInputField(myPanelId, p["name"], getDesc(p["simpleName"],p["name"]), p["type"], p["enums"], "#panel-body-opt-", p["isOptional"], p["rootIsOptional"], p["multipleValuesAllowed"])
+                  });
+                }
                 $('#panel-body-opt-' + myPanelId).slideUp(0);
                 if (sub === true) {
+                  $("#panel-body-" + myPanelId).append('<hr>');
+                  if(Array.isArray(dsType)){
+                    var i=0;
+                    for(var t of dsType){
+                      var subClasses = getAllSubClasses(t).sort();
+                      $("#panel-body-" + myPanelId).append('<select name="select" class="form-control input-myBackground input-mySelect" id="' + "sub_" + myPanelId +'_'+i+ '" title="Select a sub-class if you want to specify further">');
+                      var dropdown = $('#' + 'sub_' + myPanelId + '_' + i);
+                      dropdown.append('<option value="' + t + '">Default: ' + t + '</option>');
+                      subClasses.forEach(function (e) {
+                          dropdown.append('<option value="' + e + '">' + e + '</option>');
+                      });
+                      dropdown.append('</select>');
+                      i++;
+                    }
+                  }else{
                     var subClasses = getAllSubClasses(dsType).sort();
                     $("#panel-body-" + myPanelId).append('<select name="select" class="form-control input-myBackground input-mySelect" id="' + "sub_" + myPanelId + '" title="Select a sub-class if you want to specify further">');
                     var dropdown = $('#' + 'sub_' + myPanelId);
@@ -978,8 +1008,8 @@ this.IA_Init = function(settings) {
                         dropdown.append('<option value="' + e + '">' + e + '</option>');
                     });
                     dropdown.append('</select>');
+                  }
                 }
-            }
         } else {
             $("#panel-body-" + myPanelId).html('<pre  style="max-height:400px" id="ia_panel_' + myPanelId + '_content"></pre>');
         }
@@ -1140,8 +1170,17 @@ this.IA_Init = function(settings) {
             } else {
                 var myLevel = level === "" ? name : level + "-" + name;
                 var path = myLevel + "-@type";
+                var type;
+                if(Array.isArray(range["sh:class"])){
+                  type=[];
+                  for(var i of range["sh:class"]){
+                    type.push(removeNS(i));
+                  }
+                }else{
+                  type=removeNS(range["sh:class"])
+                }
                 var pathType = {
-                    "name": removeNS(range["sh:class"]),
+                    "name": type,
                     "path": path,
                     "panelId": myPanelId
                 };
@@ -1167,7 +1206,15 @@ this.IA_Init = function(settings) {
                 schemaName = t["root"]
             }
         });
-        var selected = $('#' + "sub_" + id).val();
+        var selected;
+        if(Array.isArray(schemaName)){
+          selected=[];
+          for(var i in schemaName){
+            selected.push($('#' + "sub_" + id+'_'+i).val());
+          }
+        }else{
+          selected = $('#' + "sub_" + id).val();
+        }
         if (selected != undefined && selected != "" && selected != null) {
             schemaName = selected;
         }
@@ -1333,6 +1380,9 @@ this.IA_Init = function(settings) {
     }
 
     function getAllSubClasses(base) {
+        if(!iasemantify_sdoClasses[base]){
+          return base;
+        }
         var subClasses = clone(iasemantify_sdoClasses[base].subClasses);
         subClasses.forEach(function (c) {
             subClasses = subClasses.concat(getAllSubClasses(c));
