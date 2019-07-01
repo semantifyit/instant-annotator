@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+    <title>Getting Started</title>
+    <link rel="stylesheet" href="../../css/instantAnnotations.css"/>
+</head>
+<body>
+<div class="semantify-instant-annotations">
+    <div id="divid"></div>
+    <div id="divid2"></div>
+</div>
+</body>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/snackbarjs/1.1.0/snackbar.min.js"></script>
+<script src="../dist/main.js"></script>
+<!--<script src="http://localhost:8080/main.js"></script>-->
+
+<script>
+    InstantAnnotation.createIABox('divid', 'w8Ki-xnbG', null, (box) => {
+        console.log(box);
+    });
+    let annotation = {
+        '@type': 'Event',
+        name: 'foo',
+        location: {
+            address: {
+                streetAddress: 'addre'
+            }
+        },
+        description: '0100010'
+    };
+    let options = {
+        annotation,
+        smtfySemantifyWebsiteUID: 'XWMhZ5jX_',
+        smtfySemantifyWebsiteSecret: 'ba10144ca5ee236355d562ee25352e0c',
+    };
+
+    InstantAnnotation.createIABox('divid2', 'SyqlG3b4Mkf', options , (box) => {
+        console.log(box);
+    });
+</script>
+</html>

@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+    <title>Getting Started</title>
+    <link rel="stylesheet" href="../../css/instantAnnotations.css"/>
+</head>
+<body>
+    <div class="semantify-instant-annotations">
+        <div id="divid"></div>
+        <div id="divid2"></div>
+    </div>
+</body>
+<script src="../dist/main.bundle.js"></script>
+<!--<script src="http://localhost:8080/main.bundle.js"></script>-->
+
+<script>
+    InstantAnnotation.createIABox('divid', 'w8Ki-xnbG', null, (box) => {
+        console.log(box);
+    });
+    let annotation = {
+        '@type': 'Event',
+        name: 'foo',
+        location: {
+            address: {
+                streetAddress: 'addre'
+            }
+        },
+        description: '0100010'
+    };
+    let options = {
+        annotation,
+        smtfySemantifyWebsiteUID: 'XWMhZ5jX_',
+        smtfySemantifyWebsiteSecret: 'ba10144ca5ee236355d562ee25352e0c',
+    };
+
+    InstantAnnotation.createIABox('divid2', 'SyqlG3b4Mkf', options , (box) => {
+        console.log(box);
+    });
+</script>
+</html>
