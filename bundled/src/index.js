@@ -62,15 +62,21 @@ function addBox(htmlId, dsHash, options, cb) {
         '</div>'
     );
 
-    httpGet(semantifyUrl + "/api/domainSpecification/hash/" + dsHash, function (ds) {
-        if(!ds){
-            throw new Error("Ds with hash '" + dsHash +  "'does not exist");
-        }
-        ds["hash"] = dsHash;
-        const mergedOptions = Object.assign(getDefaultOptions(), options); // can use newObj = jQuery.extend(true, { }, oldObject); for deep cloning if Object.assign isn't enough
-        mergedOptions.buttons = parseButtons(mergedOptions.buttons);
-        generateBox(iaBox, $ele, ds, mergedOptions, cb);
-    });
+    const mergedOptions = Object.assign(getDefaultOptions(), options); // can use newObj = jQuery.extend(true, { }, oldObject); for deep cloning if Object.assign isn't enough
+    mergedOptions.buttons = parseButtons(mergedOptions.buttons);
+
+    if(dsHash) {
+        httpGet(semantifyUrl + "/api/domainSpecification/hash/" + dsHash, function (ds) {
+            if(!ds){
+                throw new Error("Ds with hash '" + dsHash +  "'does not exist");
+            }
+            ds["hash"] = dsHash;
+            generateBox(iaBox, $ele, ds, mergedOptions, cb);
+        });
+    } else {
+        generateBox(iaBox, $ele, undefined, mergedOptions, cb);
+    }
+
 }
 
 function generateBox(iaBox, $jqueryElement, ds, options, cb){
@@ -78,7 +84,7 @@ function generateBox(iaBox, $jqueryElement, ds, options, cb){
     $('#loading' + myPanelId).hide();
 
     var curDs = ds && ds['content']["@graph"][0];
-    var displayTitle = (options && options.title ? options.title : (curDs === undefined ? "DS not found" : curDs["schema:name"]));
+    var displayTitle = (options && options.title ? options.title : (curDs === undefined ? "Domainspecification not found" : curDs["schema:name"]));
     var dsName = displayTitle;
     var footer = (options && options.buttons && options.buttons.length > 0 ? '<div class="panel-footer text-center" id="panel-footer-' + myPanelId + '"></div>' : '');      //only display footer if there are some buttons
     $jqueryElement.append(

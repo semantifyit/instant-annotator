@@ -6,15 +6,18 @@
 </head>
 <body>
     <div class="semantify-instant-annotations">
-        <div id="divid"></div>
+        <div id="divid1"></div>
         <div id="divid2"></div>
+        <div id="divid3"></div>
+        <div id="divid4"></div>
+        <div id="divid5"></div>
     </div>
 </body>
 <script src="../dist/main.bundle.js"></script>
 <!--<script src="http://localhost:8080/main.bundle.js"></script>-->
 
 <script>
-    InstantAnnotation.createIABox('divid', 'w8Ki-xnbG', null, (box) => {
+    InstantAnnotation.createIABox('divid1', 'w8Ki-xnbG', null, (box) => {
         console.log(box);
     });
     let annotation = {
@@ -34,6 +37,21 @@
     };
 
     InstantAnnotation.createIABox('divid2', 'SyqlG3b4Mkf', options , (box) => {
+        console.log(box);
+    });
+    InstantAnnotation.createIABox('divid3', null, {annotation}, (box) => {
+        console.log(box);
+    });
+    let alertButton = {
+        name: 'Alert',
+        icon:'add_alert',
+        "onlyIcon": false,
+        onclick: function() { alert("Hello World")}
+    };
+    InstantAnnotation.createIABox('divid4', 'SyqlG3b4Mkf', {buttons: ['preview', alertButton]}, (box) => {
+        console.log(box);
+    });
+    InstantAnnotation.createIABox('divid5', 'SyqlG3b4Mkf', {smtfyAnnotationUID: 'ZEbX5q3Xz'}, (box) => {
         console.log(box);
     });
 </script>
