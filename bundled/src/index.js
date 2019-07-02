@@ -4,10 +4,12 @@ import 'snackbarjs';
 import 'eonasdan-bootstrap-datetimepicker';
 import 'bootstrap';
 
-import { httpGet, removeNS, clone, unique, containsArray, syntaxHighlight, flatten, set, htmlList, send_snackbarMSG } from "./util";
+import * as Util from "./util";
 import { loadSchemaFiles, schemaFilesReady, getAllSubClasses, getDesc } from "./schemaOrg";
-import {parseButtons} from "./buttons";
+import { parseButtons } from "./buttons";
 import { semantifyUrl } from "./globals";
+
+const { httpGet, removeNS, unique, containsArray, syntaxHighlight, flatten, set, htmlList, send_snackbarMSG } = Util;
 
 loadSchemaFiles();
 
@@ -34,12 +36,32 @@ function newPanelId() {
     return 'Panel' + panelCounter++;
 }
 
+const dsCache = {};
+function getDomainSpecification(dsHash, cb) {
+    if(dsCache[dsHash] && dsCache[dsHash].ready) {
+        cb(dsCache[dsHash].data);
+    } else if (dsCache[dsHash] && !dsCache[dsHash].ready) {
+        setTimeout(function() { getDomainSpecification(dsHash, cb) }, 50);
+    } else{
+        dsCache[dsHash] = { ready: false, data: null };
+        httpGet(semantifyUrl + "/api/domainSpecification/hash/" + dsHash, function (ds) {
+            if(!ds){
+                throw new Error("Ds with hash '" + dsHash +  "'does not exist");
+            }
+            ds["hash"] = dsHash;
+            dsCache[dsHash].ready = true;
+            dsCache[dsHash].data = ds;
+            cb(ds);
+        });
+    }
+}
+
 
 function createIABox(...args){
     if(!schemaFilesReady()) {
         setTimeout(function () {
             createIABox(...args);
-        }, 100);
+        }, 50);
         return;
     }
     addBox(...args);
@@ -66,11 +88,7 @@ function addBox(htmlId, dsHash, options, cb) {
     mergedOptions.buttons = parseButtons(mergedOptions.buttons);
 
     if(dsHash) {
-        httpGet(semantifyUrl + "/api/domainSpecification/hash/" + dsHash, function (ds) {
-            if(!ds){
-                throw new Error("Ds with hash '" + dsHash +  "'does not exist");
-            }
-            ds["hash"] = dsHash;
+        getDomainSpecification(dsHash, function (ds) {
             generateBox(iaBox, $ele, ds, mergedOptions, cb);
         });
     } else {
@@ -577,8 +595,20 @@ function semantifyCreateJsonLd(id) {
     }
 }
 
-
+const util = {
+    semantifyUrl,
+    remove: Util.remove,
+    copyStr: Util.copyStr,
+    syntaxHighlight: Util.syntaxHighlight,
+    send_snackbarMSG: Util.send_snackbarMSG,
+    send_snackbarMSG_fail: Util.send_snackbarMSG_fail,
+    httpGetHeaders: Util.httpGetHeaders,
+    httpPostJson: Util.httpPostJson,
+    httpCall: Util.httpCall,
+    httpGet: Util.httpGet,
+};
 
 export {
     createIABox,
+    util,
 }

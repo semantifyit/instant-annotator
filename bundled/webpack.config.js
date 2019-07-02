@@ -2,6 +2,7 @@ const webpack = require('webpack');
 const path = require('path');
 
 module.exports = [
+
     {
         name: 'bundle',
         mode: 'production',
@@ -31,7 +32,10 @@ module.exports = [
         },
         externals: {
             jquery: 'jQuery',
-            moment: 'moment'
+            moment: 'moment',
+            snackbarjs: '0', // string '0', since no named export; import * as foo from 'snackbarjs'; - foo === 0
+            'eonasdan-bootstrap-datetimepicker': '0',
+            bootstrap: '0',
         },
         plugins: [
             // Ignore all locale files of moment.js
