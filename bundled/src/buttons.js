@@ -60,7 +60,7 @@ var wordPressSaveBtn = {
                 'website-secret': iasemantify_saveWebsiteSecret
             };
             httpPostJson(semantifyUrl + "/api/annotation/" + iasemantify_saveWebsiteUID, header, bulk, function (saveRes) {
-                if (saveRes && saveRes.statusText !== "Not Found" && saveRes.statusText !== "Forbidden" && saveRes.status === 200) {
+                if (saveRes && !saveRes.message) {
                     send_snackbarMSG("Successfully saved Annotation to semantify.it");
                     //$("#panel-footer-btn-Save-" + res.panelId).prop('disabled', true);
 
@@ -92,7 +92,7 @@ var wordPressSaveBtn = {
                         }
                     });
                 } else {
-                    send_snackbarMSG_fail("An error occurred. Please check your semantify api-key!")
+                    send_snackbarMSG_fail("An error occurred. Please check your semantify api-key!"+ " ("+saveRes.message+")")
                 }
             });
         }

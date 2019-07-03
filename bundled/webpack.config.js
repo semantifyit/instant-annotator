@@ -8,7 +8,7 @@ module.exports = [
         mode: 'production',
         entry: './src/index.js',
         output: {
-            filename: 'main.bundle.js',
+            filename: 'instantAnnotation.bundle.js',
             path: path.resolve(__dirname, 'dist'),
             library: 'InstantAnnotation'
         },
@@ -26,7 +26,7 @@ module.exports = [
         mode: 'production',
         entry: './src/index.js',
         output: {
-            filename: 'main.js',
+            filename: 'instantAnnotation.js',
             path: path.resolve(__dirname, 'dist'),
             library: 'InstantAnnotation'
         },
