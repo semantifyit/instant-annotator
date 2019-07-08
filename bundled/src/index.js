@@ -37,20 +37,21 @@ function newPanelId() {
 }
 
 const dsCache = {};
-function getDomainSpecification(dsHash, cb) {
-    if(dsCache[dsHash] && dsCache[dsHash].ready) {
-        cb(dsCache[dsHash].data);
-    } else if (dsCache[dsHash] && !dsCache[dsHash].ready) {
-        setTimeout(function() { getDomainSpecification(dsHash, cb) }, 50);
-    } else{
-        dsCache[dsHash] = { ready: false, data: null };
-        httpGet(semantifyUrl + "/api/domainSpecification/hash/" + dsHash, function (ds) {
-            if(!ds){
-                throw new Error("Ds with hash '" + dsHash +  "'does not exist");
+function getDomainSpecification(dsId, isDsHash, cb) {
+    if(dsCache[dsId] && dsCache[dsId].ready) {
+        cb(dsCache[dsId].data);
+    } else if (dsCache[dsId] && !dsCache[dsId].ready) {
+        setTimeout(function() { getDomainSpecification(dsId, isDsHash, cb) }, 50);
+    } else {
+        dsCache[dsId] = { ready: false, data: null };
+        const url = `${semantifyUrl}/api/domainSpecification/${isDsHash ? 'hash/': ''}${dsId}`;
+        httpGet(url, function (ds) {
+            if(!ds) {
+                throw new Error("Ds with hash/id '" + dsId + "'does not exist");
             }
-            ds["hash"] = dsHash;
-            dsCache[dsHash].ready = true;
-            dsCache[dsHash].data = ds;
+            ds["hash"] = isDsHash ? dsId: null;
+            dsCache[dsId].ready = true;
+            dsCache[dsId].data = ds;
             cb(ds);
         });
     }
@@ -68,7 +69,7 @@ function createIABox(...args){
 }
 
 
-function addBox(htmlId, dsHash, options, cb) {
+function addBox(htmlId, ds, options, cb) {
     let $ele = $('#' + htmlId);
     if(!$ele) {
         throw new Error("Cannot find div with id " + htmlId);
@@ -87,10 +88,20 @@ function addBox(htmlId, dsHash, options, cb) {
     const mergedOptions = Object.assign(getDefaultOptions(), options); // can use newObj = jQuery.extend(true, { }, oldObject); for deep cloning if Object.assign isn't enough
     mergedOptions.buttons = parseButtons(mergedOptions.buttons);
 
-    if(dsHash) {
-        getDomainSpecification(dsHash, function (ds) {
-            generateBox(iaBox, $ele, ds, mergedOptions, cb);
-        });
+    if(ds) {
+        if(typeof ds === 'string') {
+            //dsHash
+            getDomainSpecification(ds, true,function (ds) {
+                generateBox(iaBox, $ele, ds, mergedOptions, cb);
+            });
+        } else if(ds.dsId) {
+            getDomainSpecification(ds.dsId, false,function (ds) {
+                generateBox(iaBox, $ele, ds, mergedOptions, cb);
+            });
+        } else {
+            throw new Error('Either provide ds as string or {dsId: "yourdsid"}');
+        }
+
     } else {
         generateBox(iaBox, $ele, undefined, mergedOptions, cb);
     }
