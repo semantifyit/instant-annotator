@@ -24,12 +24,12 @@ the standalone file and add all js dependencies manually.
 
 With Bundle:
 ```html
-<script src="./dist/instantAnnotations.bundle.js"></script>
+<script src="./dist/instantAnnotation.bundle.js"></script>
 ```
 
 Standalone:
 ```html
-<script src="./dist/instantAnnotations.js"></script>
+<script src="./dist/instantAnnotation.js"></script>
 ```
 
 
@@ -71,6 +71,9 @@ HTML:
     <div id="myIABox"></div>
 </div>
 ```
+
+The inner div is an instance of a Instant Annotation box.
+The outer div is for our css to work, make sure your boxes are surrounded by this div (or that css class).
 
 JavaScript:
 ```js
@@ -140,6 +143,14 @@ const myButton = {
 const options = {
   buttons: ['preview', myButton],
 }
+```
+
+### CallBack
+You can also add a callback to the function call, to know when the box is finished creating:
+```js
+InstantAnnotation.createIABox(htmlId, dshash, options, function(){
+    console.log('finished box');
+});
 ```
 
 ##About
