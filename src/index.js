@@ -468,6 +468,7 @@ function fillBoxAnnotation(iaBox, ds, options, cb) {
             code.css("-webkit-mask", "linear-gradient(0deg, rgba(0,0,0,0) 20%, rgba(0,0,0,1) 70%)");
         }
     }
+    cb(iaBox);
 }
 
 function semantifyCreateJsonLd(id) {
