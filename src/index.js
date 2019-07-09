@@ -262,7 +262,7 @@ function getProps(props, level, fatherType, myPanelId, fatherIsOptional) {
         var range = prop['sh:or']['@list'][0];
         var isOptional = prop["sh:minCount"] ? prop["sh:minCount"] === 0 : true;
         var name = removeNS(prop["sh:path"]);
-        if (!range['sh:node']) {
+        if (!range['sh:node'] && (range["sh:datatype"] || range['sh:in'])) {
             var simpleProp = {
                 "simpleName": name,
                 "name": (level === "" ? "" : level + "-") + name,
@@ -283,7 +283,7 @@ function getProps(props, level, fatherType, myPanelId, fatherIsOptional) {
             }
 
             propList.push(simpleProp);
-        } else {
+        } else if(range['sh:node']) {
             var myLevel = level === "" ? name : level + "-" + name;
             var path = myLevel + "-@type";
             var type;
@@ -308,6 +308,8 @@ function getProps(props, level, fatherType, myPanelId, fatherIsOptional) {
                     range["sh:class"],
                     myPanelId,
                     fIsOptional));
+        } else {
+            console.log("UNKOWN PROP", prop)
         }
     }
     return propList;
