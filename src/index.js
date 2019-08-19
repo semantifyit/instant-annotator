@@ -5,13 +5,12 @@ import 'eonasdan-bootstrap-datetimepicker';
 import 'bootstrap';
 
 import * as Util from "./util";
-import { loadSchemaFiles, schemaFilesReady, getAllSubClasses, getDesc } from "./schemaOrg";
+import { getAllSubClasses, getDesc } from "./schemaOrg";
 import { parseButtons } from "./buttons";
 import { semantifyUrl } from "./globals";
+import { getSdoHandler } from "./ds/vocabHandler";
 
 const { httpGet, removeNS, unique, containsArray, syntaxHighlight, flatten, set, htmlList, send_snackbarMSG } = Util;
-
-loadSchemaFiles();
 
 let panelRoots = [];
 let typeList = [];
@@ -59,12 +58,6 @@ function getDomainSpecification(dsId, isDsHash, cb) {
 
 
 function createIABox(...args){
-    if(!schemaFilesReady()) {
-        setTimeout(function () {
-            createIABox(...args);
-        }, 50);
-        return;
-    }
     addBox(...args);
 }
 
@@ -92,23 +85,29 @@ function addBox(htmlId, ds, options, cb) {
         if(typeof ds === 'string') {
             //dsHash
             getDomainSpecification(ds, true,function (ds) {
-                generateBox(iaBox, $ele, ds, mergedOptions, cb);
+                fetchVocab(iaBox, $ele, ds, mergedOptions, cb);
             });
         } else if(ds.dsId) {
             getDomainSpecification(ds.dsId, false,function (ds) {
-                generateBox(iaBox, $ele, ds, mergedOptions, cb);
+                fetchVocab(iaBox, $ele, ds, mergedOptions, cb);
             });
         } else {
             throw new Error('Either provide ds as string or {dsId: "yourdsid"}');
         }
 
     } else {
-        generateBox(iaBox, $ele, undefined, mergedOptions, cb);
+        fetchVocab(iaBox, $ele, undefined, mergedOptions, cb);
     }
 
 }
 
-function generateBox(iaBox, $jqueryElement, ds, options, cb){
+function fetchVocab(iaBox, $jqueryElement, ds, options, cb) {
+    getSdoHandler(ds && ds.content, (sdoAdapter) => {
+        generateBox(iaBox, $jqueryElement, ds, options, sdoAdapter, cb)
+    });
+}
+
+function generateBox(iaBox, $jqueryElement, ds, options, sdoAdapter, cb){
     let myPanelId = iaBox.panelId;
     $('#loading' + myPanelId).hide();
 
@@ -159,7 +158,7 @@ function generateBox(iaBox, $jqueryElement, ds, options, cb){
         }
 
         for (var p of req_props){
-            insertInputField(myPanelId, p["name"], getDesc(p["simpleName"],p["name"]), p["type"], p["enums"], "#panel-body-", p["isOptional"], p["rootIsOptional"], p["multipleValuesAllowed"])
+            insertInputField(myPanelId, p["name"], getDesc(sdoAdapter, p["simpleName"],p["name"]), p["type"], p["enums"], "#panel-body-", p["isOptional"], p["rootIsOptional"], p["multipleValuesAllowed"])
         }
         if (opt_props.length > 0) {
             $('#' + 'panel-body-' + myPanelId)
@@ -178,7 +177,7 @@ function generateBox(iaBox, $jqueryElement, ds, options, cb){
                 });
             })(myPanelId);
             for (var p of opt_props) {
-                insertInputField(myPanelId, p["name"], getDesc(p["simpleName"],p["name"]), p["type"], p["enums"], "#panel-body-opt-", p["isOptional"], p["rootIsOptional"], p["multipleValuesAllowed"])
+                insertInputField(myPanelId, p["name"], getDesc(sdoAdapter, p["simpleName"],p["name"]), p["type"], p["enums"], "#panel-body-opt-", p["isOptional"], p["rootIsOptional"], p["multipleValuesAllowed"])
             }
         }
         $('#panel-body-opt-' + myPanelId).slideUp(0);
@@ -187,7 +186,7 @@ function generateBox(iaBox, $jqueryElement, ds, options, cb){
             if(Array.isArray(dsType)){
                 var i=0;
                 for(var t of dsType){
-                    var subClasses = getAllSubClasses(t).sort();
+                    var subClasses = getAllSubClasses(sdoAdapter, t).sort();
                     $("#panel-body-" + myPanelId).append('<select name="select" class="form-control input-myBackground input-mySelect" id="' + "sub_" + myPanelId +'_'+i+ '" title="Select a sub-class if you want to specify further">');
                     var dropdown = $('#' + 'sub_' + myPanelId + '_' + i);
                     dropdown.append('<option value="' + t + '">Default: ' + t + '</option>');
@@ -198,7 +197,7 @@ function generateBox(iaBox, $jqueryElement, ds, options, cb){
                     i++;
                 }
             }else{
-                var subClasses = getAllSubClasses(dsType).sort();
+                var subClasses = getAllSubClasses(sdoAdapter, dsType).sort();
                 $("#panel-body-" + myPanelId).append('<select name="select" class="form-control input-myBackground input-mySelect" id="' + "sub_" + myPanelId + '" title="Select a sub-class if you want to specify further">');
                 var dropdown = $('#' + 'sub_' + myPanelId);
                 dropdown.append('<option value="' + dsType + '">Default: ' + dsType + '</option>');

@@ -203,6 +203,42 @@ function createInjectionCodeForURL(UID) {
     return code;
 }
 
+const memoize = (fn) => {
+    const cache = {};
+    return (...args) => {
+        const n = JSON.stringify(args);
+        if (n in cache) {
+            return cache[n];
+        } else {
+            const result = fn(...args);
+            cache[n] = result;
+            return result;
+        }
+    };
+};
+
+const memoizeCb = (fn) => {
+    const cache = {};
+    const func = (...args) => {
+        const cb = args.pop();
+        const n = JSON.stringify(args);
+        if (cache[n] && cache[n].ready) {
+            cb(cache[n].data);
+        } else if(cache[n] && !cache[n].ready) {
+            setTimeout(() => func(...args, cb), 50);
+        } else {
+            cache[n] = { ready: false, data: null };
+            fn(...args, (result) => {
+                cache[n].ready = true;
+                cache[n].data = result;
+                cb(result);
+            });
+        }
+    };
+    return func;
+};
+
+
 export {
     removeNS,
     unique,
@@ -225,4 +261,6 @@ export {
     copyStr,
     createInjectionCodeForURL,
     httpGetHeaders,
+    memoize,
+    memoizeCb,
 }

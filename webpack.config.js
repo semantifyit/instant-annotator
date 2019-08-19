@@ -1,9 +1,20 @@
 const webpack = require('webpack');
 const path = require('path');
+const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = [
-
     {
+        module: {
+            rules: [
+                {
+                    test: /\.js$/,
+                    exclude: /(node_modules|sdoAdapter)/,
+                    use: {
+                        loader: "babel-loader"
+                    }
+                }
+            ]
+        },
         name: 'bundle',
         mode: 'production',
         entry: './src/index.js',
@@ -20,8 +31,28 @@ module.exports = [
                 jQuery: "jquery"
             })
         ],
+        optimization: {
+            minimizer: [
+                new TerserPlugin({
+                    terserOptions: {
+                        output: { ascii_only: true }
+                    }
+                })
+            ],
+        },
     },
     {
+        module: {
+            rules: [
+                {
+                    test: /\.js$/,
+                    exclude: /(node_modules|sdoAdapter)/,
+                    use: {
+                        loader: "babel-loader"
+                    }
+                }
+            ]
+        },
         name: 'standalone',
         mode: 'production',
         entry: './src/index.js',
@@ -45,5 +76,15 @@ module.exports = [
                 jQuery: "jquery"
             })
         ],
+        optimization: {
+            minimizer: [
+                new TerserPlugin({
+                    //exclude: /sdoAdapter/
+                    terserOptions: {
+                        output: { ascii_only: true }
+                    }
+                }),
+            ],
+        },
     }
 ];
