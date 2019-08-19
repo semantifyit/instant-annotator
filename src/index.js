@@ -9,6 +9,7 @@ import { getAllSubClasses, getDesc } from "./schemaOrg";
 import { parseButtons } from "./buttons";
 import { semantifyUrl } from "./globals";
 import { getSdoHandler } from "./ds/vocabHandler";
+import { memoizeCb } from "./util";
 
 const { httpGet, removeNS, unique, containsArray, syntaxHighlight, flatten, set, htmlList, send_snackbarMSG } = Util;
 
@@ -35,27 +36,18 @@ function newPanelId() {
     return 'Panel' + panelCounter++;
 }
 
-const dsCache = {};
-function getDomainSpecification(dsId, isDsHash, cb) {
-    if(dsCache[dsId] && dsCache[dsId].ready) {
-        cb(dsCache[dsId].data);
-    } else if (dsCache[dsId] && !dsCache[dsId].ready) {
-        setTimeout(function() { getDomainSpecification(dsId, isDsHash, cb) }, 50);
-    } else {
-        dsCache[dsId] = { ready: false, data: null };
-        const url = `${semantifyUrl}/api/domainSpecification/${isDsHash ? 'hash/': ''}${dsId}`;
-        httpGet(url, function (ds) {
-            if(!ds) {
-                throw new Error("Ds with hash/id '" + dsId + "'does not exist");
-            }
-            ds["hash"] = isDsHash ? dsId: null;
-            dsCache[dsId].ready = true;
-            dsCache[dsId].data = ds;
-            cb(ds);
-        });
-    }
+function getDomainSpecificationSingle(dsId, isDsHash, cb) {
+    const url = `${semantifyUrl}/api/domainSpecification/${isDsHash ? 'hash/': ''}${dsId}`;
+    httpGet(url, function (ds) {
+        if (!ds) {
+            throw new Error("Ds with hash/id '" + dsId + "'does not exist");
+        }
+        ds["hash"] = isDsHash ? dsId : null;
+        cb(ds);
+    });
 }
 
+const getDomainSpecification = memoizeCb(getDomainSpecificationSingle);
 
 function createIABox(...args){
     addBox(...args);
@@ -467,7 +459,9 @@ function fillBoxAnnotation(iaBox, ds, options, cb) {
             code.css("-webkit-mask", "linear-gradient(0deg, rgba(0,0,0,0) 20%, rgba(0,0,0,1) 70%)");
         }
     }
-    cb(iaBox);
+    if(cb) {
+        cb(iaBox);
+    }
 }
 
 function semantifyCreateJsonLd(id) {
