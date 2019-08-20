@@ -9,9 +9,8 @@ import { getAllSubClasses, getDesc } from "./schemaOrg";
 import { parseButtons } from "./buttons";
 import { semantifyUrl } from "./globals";
 import { getSdoHandler } from "./ds/vocabHandler";
-import { memoizeCb } from "./util";
 
-const { httpGet, removeNS, unique, containsArray, syntaxHighlight, flatten, set, htmlList, send_snackbarMSG } = Util;
+const { httpGet, removeNS, unique, containsArray, syntaxHighlight, flatten, set, htmlList, send_snackbarMSG, idSel, propName, memoizeCb } = Util;
 
 let panelRoots = [];
 let typeList = [];
@@ -124,10 +123,13 @@ function generateBox(iaBox, $jqueryElement, ds, options, sdoAdapter, cb){
         if(Array.isArray(curDs["sh:targetClass"])){
             dsType = [];
             for (var i of curDs["sh:targetClass"]){
-                dsType.push(removeNS(i));
+                dsType.push(propName(i));
             }
         }else{
-            dsType = removeNS(curDs["sh:targetClass"]);
+            dsType = propName(curDs["sh:targetClass"]);
+        }
+        if (Array.isArray(dsType) && dsType.length === 1) {
+            dsType = dsType[0];
         }
         var t = {
             "panelId": myPanelId,
@@ -223,7 +225,7 @@ function generateBox(iaBox, $jqueryElement, ds, options, sdoAdapter, cb){
                 .click(function (e) {
                     e.preventDefault();
                     onclick({
-                        "jsonLd": $("#panel-footer-btn-Preview-" + thisPanelId).prop("already_annotation_created") ? $("#panel-footer-btn-Preview-" + thisPanelId).prop("already_annotation_created") : (createJsonLD ? semantifyCreateJsonLd(thisPanelId) : null),
+                        "jsonLd": $("#panel-footer-btn-Preview-" + thisPanelId).prop("already_annotation_created") ? $("#panel-footer-btn-Preview-" + thisPanelId).prop("already_annotation_created") : (createJsonLD ? semantifyCreateJsonLd(thisPanelId, sdoAdapter) : null),
                         "dsHash": ds && ds["hash"],
                         "annId": $('#panel-' + thisPanelId).data("smtfyAnnId"),
                         "webId": $('#panel-' + thisPanelId).data("smtfyWebId"),
@@ -252,7 +254,7 @@ function getProps(props, level, fatherType, myPanelId, fatherIsOptional) {
         var prop = props[p];
         var range = prop['sh:or']['@list'][0];
         var isOptional = prop["sh:minCount"] ? prop["sh:minCount"] === 0 : true;
-        var name = removeNS(prop["sh:path"]);
+        var name = propName(prop["sh:path"]);
         if (!range['sh:node'] && (range["sh:datatype"] || range['sh:in'])) {
             var simpleProp = {
                 "simpleName": name,
@@ -322,9 +324,9 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
             break;
         case "xsd:boolean":
             $(panel + panelId).append('<select style="color:#aaa" name="select" class="form-control input-myBackground" id="' + id + '" title=" ' + desc + '"></select>');
-            $('#' + id).append('<option value="" selected style="color:#aaa">'+ name + '</option><option  style="color:#000" value="true">true</option><option style="color:#000" value="false">false</option>');
+            $(idSel(id)).append('<option value="" selected style="color:#aaa">'+ name + '</option><option  style="color:#000" value="true">true</option><option style="color:#000" value="false">false</option>');
 
-            $('#' + id).change(function(){
+            $(idSel(id)).change(function(){
                 if ($(this).val()=="") $(this).css({color: "#aaa"});
                 else $(this).css({color: "#000"});
             });
@@ -332,19 +334,19 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
             break;
         case "xsd:date":
             $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-            $('#' + id).datetimepicker({
+            $(idSel(id)).datetimepicker({
                 format: 'YYYY-MM-DD'
             });
             break;
         case "xsd:dateTime":
             $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-            $('#' + id).datetimepicker({
+            $(idSel(id)).datetimepicker({
                 format: 'YYYY-MM-DDTHH:mm'
             });
             break;
         case "xsd:time":
             $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-            $('#' + id).datetimepicker({
+            $(idSel(id)).datetimepicker({
                 format: 'HH:mm'
             });
             break;
@@ -354,12 +356,12 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
             } else {
 
                 $(panel + panelId).append('<select style="color:#bfc0bf" name="select" class="form-control input-myBackground" id="' + id + '" title=" ' + desc + '">');
-                $('#' + id).change(function(){
+                $(idSel(id)).change(function(){
                     if ($(this).val()=="") $(this).css({color: "#bfc0bf"});
                     else $(this).css({color: "#555555"});
                 });
             }
-            var enumField = $('#' + id);
+            var enumField = $(idSel(id));
             enumField.append('<option value="" selected style="color:#bfc0bf">Select: ' + name + '</option>');
             enumerations.forEach(function (e) {
                 enumField.append('<option style="color:#555555" value="' + e + '">' + e + '</option>');
@@ -367,7 +369,7 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
             enumField.append('</select>');
             break;
     }
-    $("#" + id)
+    $(idSel(id))
         .data("type", type)
         .data("enumerations", enumerations)
         .data("isOptional", optional)
@@ -438,7 +440,7 @@ function fillBoxAnnotation(iaBox, ds, options, cb) {
                 $('#sub_' + panelId).val(flatJson['@type']).change();
             }
             for (var a of getAllInputs(panelId)) {
-                var $inputField = $("#" + a);
+                var $inputField = $(idSel(a));
                 var path = $inputField.data("name");
                 var tempValue = flatJson[path.replace(/-/g, ".")];
                 if (tempValue !== undefined && tempValue.length > 0) {
@@ -464,7 +466,7 @@ function fillBoxAnnotation(iaBox, ds, options, cb) {
     }
 }
 
-function semantifyCreateJsonLd(id) {
+function semantifyCreateJsonLd(id, sdoAdapter) {
     var dsName;
     var schemaName = "Thing";
     panelRoots.forEach(function (t) {
@@ -487,8 +489,14 @@ function semantifyCreateJsonLd(id) {
     }
     var validPaths = [];
     var allPaths = [];
+    let context = Object.entries(sdoAdapter.getVocabularies());
+    if (context.length === 1 && context[0][0] === 'schema') {
+        context = context[0][1]
+    } else {
+        context = Object.fromEntries(context.map(([k, v]) => ([k === 'schema' ? '@vocab' : k, v])));
+    }
     var resultJson = {
-        "@context": "http://schema.org/",
+        "@context": context,
         "@type": schemaName
     };
     var allRequired = true; //variable gets false if an required field is empty
@@ -505,7 +513,7 @@ function semantifyCreateJsonLd(id) {
     };
 
     for (var a of allInputs) {
-        var $inputField = $("#" + a);
+        var $inputField = $(idSel(a));
         var value = $inputField.val();
         var path = $inputField.data("name");
         var optional = $inputField.data("isOptional");
@@ -523,7 +531,7 @@ function semantifyCreateJsonLd(id) {
                 bAllPaths.push((bPaths.join("-")))
             }
             allInputs.forEach(function (b) {
-                var $inputElem = $("#" + b);
+                var $inputElem = $(idSel(b));
                 var bPath = $inputElem.data("name");
                 var bOptional = $inputElem.data("isOptional");
                 var bRootOptional = $inputElem.data("rootIsOptional");
@@ -563,7 +571,6 @@ function semantifyCreateJsonLd(id) {
             allPaths.forEach(function (a) {
                 validPaths.forEach(function (v) {
                     if (v === a["path"]) {
-
                         resultJson = set(resultJson, a["path"], a["name"])
                     }
                 });

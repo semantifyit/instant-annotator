@@ -238,6 +238,14 @@ const memoizeCb = (fn) => {
     return func;
 };
 
+function idSel(str) {
+    return '[id="' + str + '"]'
+}
+
+function propName(str) {
+    return str.startsWith('schema') ? removeNS(str) : str;
+}
+
 
 export {
     removeNS,
@@ -263,4 +271,6 @@ export {
     httpGetHeaders,
     memoize,
     memoizeCb,
+    idSel,
+    propName,
 }
