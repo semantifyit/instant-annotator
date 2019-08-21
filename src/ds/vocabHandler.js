@@ -45,13 +45,17 @@ function getSDOVersion(domainSpecification) {
 
 // ^^^ from semantify-core/public/domainspecifications/assets/vocabularyHandler.js
 
-const getSdoHandlerSingle = (ds, cb) => {
+const getSdoHandlerSingle = (vocabs, cb) => {
     const sdoAdapt = new sdoAdapter();
-    const vocabs = getVocabURLForIRIs(analyzeDSVocabularies(ds));
     sdoAdapt.addVocabularies(vocabs, () => cb(sdoAdapt));
 };
 
-const getSdoHandler = memoizeCb(getSdoHandlerSingle);
+const getSdoHandlerMem = memoizeCb(getSdoHandlerSingle);
+
+const getSdoHandler = (ds, cb) => {
+    const vocabs = getVocabURLForIRIs(analyzeDSVocabularies(ds));
+    getSdoHandlerMem(vocabs, cb);
+};
 
 
 export {
