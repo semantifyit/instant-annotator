@@ -10,7 +10,7 @@ import { parseButtons } from "./buttons";
 import { semantifyUrl } from "./globals";
 import { getSdoHandler } from "./ds/vocabHandler";
 
-const { httpGet, removeNS, unique, containsArray, syntaxHighlight, flatten, set, htmlList, send_snackbarMSG, idSel, propName, memoizeCb } = Util;
+const { httpGet, removeNS, unique, containsArray, syntaxHighlight, flatten, set, htmlList, send_snackbarMSG, idSel, propName, memoizeCb, fromEntries } = Util;
 
 let panelRoots = [];
 let typeList = [];
@@ -493,7 +493,7 @@ function semantifyCreateJsonLd(id, sdoAdapter) {
     if (context.length === 1 && context[0][0] === 'schema') {
         context = context[0][1]
     } else {
-        context = Object.fromEntries(context.map(([k, v]) => ([k === 'schema' ? '@vocab' : k, v])));
+        context = fromEntries(context.map(([k, v]) => ([k === 'schema' ? '@vocab' : k, v])));
     }
     var resultJson = {
         "@context": context,

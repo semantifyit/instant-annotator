@@ -246,6 +246,13 @@ function propName(str) {
     return str.startsWith('schema') ? removeNS(str) : str;
 }
 
+function fromEntries (iterable) {
+    return [...iterable].reduce((obj, [key, val]) => {
+        obj[key] = val;
+        return obj
+    }, {})
+}
+
 
 export {
     removeNS,
@@ -273,4 +280,5 @@ export {
     memoizeCb,
     idSel,
     propName,
+    fromEntries
 }
