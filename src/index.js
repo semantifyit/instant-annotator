@@ -5,13 +5,12 @@ import 'eonasdan-bootstrap-datetimepicker';
 import 'bootstrap';
 
 import * as Util from "./util";
-import { loadSchemaFiles, schemaFilesReady, getAllSubClasses, getDesc } from "./schemaOrg";
+import { getAllSubClasses, getDesc } from "./schemaOrg";
 import { parseButtons } from "./buttons";
 import { semantifyUrl } from "./globals";
+import { getSdoHandler } from "./ds/vocabHandler";
 
-const { httpGet, removeNS, unique, containsArray, syntaxHighlight, flatten, set, htmlList, send_snackbarMSG } = Util;
-
-loadSchemaFiles();
+const { httpGet, removeNS, unique, containsArray, syntaxHighlight, flatten, set, htmlList, send_snackbarMSG, idSel, propName, memoizeCb, fromEntries } = Util;
 
 let panelRoots = [];
 let typeList = [];
@@ -36,35 +35,20 @@ function newPanelId() {
     return 'Panel' + panelCounter++;
 }
 
-const dsCache = {};
-function getDomainSpecification(dsId, isDsHash, cb) {
-    if(dsCache[dsId] && dsCache[dsId].ready) {
-        cb(dsCache[dsId].data);
-    } else if (dsCache[dsId] && !dsCache[dsId].ready) {
-        setTimeout(function() { getDomainSpecification(dsId, isDsHash, cb) }, 50);
-    } else {
-        dsCache[dsId] = { ready: false, data: null };
-        const url = `${semantifyUrl}/api/domainSpecification/${isDsHash ? 'hash/': ''}${dsId}`;
-        httpGet(url, function (ds) {
-            if(!ds) {
-                throw new Error("Ds with hash/id '" + dsId + "'does not exist");
-            }
-            ds["hash"] = isDsHash ? dsId: null;
-            dsCache[dsId].ready = true;
-            dsCache[dsId].data = ds;
-            cb(ds);
-        });
-    }
+function getDomainSpecificationSingle(dsId, isDsHash, cb) {
+    const url = `${semantifyUrl}/api/domainSpecification/${isDsHash ? 'hash/': ''}${dsId}`;
+    httpGet(url, function (ds) {
+        if (!ds) {
+            throw new Error("Ds with hash/id '" + dsId + "'does not exist");
+        }
+        ds["hash"] = isDsHash ? dsId : null;
+        cb(ds);
+    });
 }
 
+const getDomainSpecification = memoizeCb(getDomainSpecificationSingle);
 
 function createIABox(...args){
-    if(!schemaFilesReady()) {
-        setTimeout(function () {
-            createIABox(...args);
-        }, 50);
-        return;
-    }
     addBox(...args);
 }
 
@@ -92,23 +76,29 @@ function addBox(htmlId, ds, options, cb) {
         if(typeof ds === 'string') {
             //dsHash
             getDomainSpecification(ds, true,function (ds) {
-                generateBox(iaBox, $ele, ds, mergedOptions, cb);
+                fetchVocab(iaBox, $ele, ds, mergedOptions, cb);
             });
         } else if(ds.dsId) {
             getDomainSpecification(ds.dsId, false,function (ds) {
-                generateBox(iaBox, $ele, ds, mergedOptions, cb);
+                fetchVocab(iaBox, $ele, ds, mergedOptions, cb);
             });
         } else {
             throw new Error('Either provide ds as string or {dsId: "yourdsid"}');
         }
 
     } else {
-        generateBox(iaBox, $ele, undefined, mergedOptions, cb);
+        fetchVocab(iaBox, $ele, undefined, mergedOptions, cb);
     }
 
 }
 
-function generateBox(iaBox, $jqueryElement, ds, options, cb){
+function fetchVocab(iaBox, $jqueryElement, ds, options, cb) {
+    getSdoHandler(ds && ds.content, (sdoAdapter) => {
+        generateBox(iaBox, $jqueryElement, ds, options, sdoAdapter, cb)
+    });
+}
+
+function generateBox(iaBox, $jqueryElement, ds, options, sdoAdapter, cb){
     let myPanelId = iaBox.panelId;
     $('#loading' + myPanelId).hide();
 
@@ -133,10 +123,13 @@ function generateBox(iaBox, $jqueryElement, ds, options, cb){
         if(Array.isArray(curDs["sh:targetClass"])){
             dsType = [];
             for (var i of curDs["sh:targetClass"]){
-                dsType.push(removeNS(i));
+                dsType.push(propName(i));
             }
         }else{
-            dsType = removeNS(curDs["sh:targetClass"]);
+            dsType = propName(curDs["sh:targetClass"]);
+        }
+        if (Array.isArray(dsType) && dsType.length === 1) {
+            dsType = dsType[0];
         }
         var t = {
             "panelId": myPanelId,
@@ -159,7 +152,7 @@ function generateBox(iaBox, $jqueryElement, ds, options, cb){
         }
 
         for (var p of req_props){
-            insertInputField(myPanelId, p["name"], getDesc(p["simpleName"],p["name"]), p["type"], p["enums"], "#panel-body-", p["isOptional"], p["rootIsOptional"], p["multipleValuesAllowed"])
+            insertInputField(myPanelId, p["name"], getDesc(sdoAdapter, p["simpleName"],p["name"]), p["type"], p["enums"], "#panel-body-", p["isOptional"], p["rootIsOptional"], p["multipleValuesAllowed"])
         }
         if (opt_props.length > 0) {
             $('#' + 'panel-body-' + myPanelId)
@@ -178,7 +171,7 @@ function generateBox(iaBox, $jqueryElement, ds, options, cb){
                 });
             })(myPanelId);
             for (var p of opt_props) {
-                insertInputField(myPanelId, p["name"], getDesc(p["simpleName"],p["name"]), p["type"], p["enums"], "#panel-body-opt-", p["isOptional"], p["rootIsOptional"], p["multipleValuesAllowed"])
+                insertInputField(myPanelId, p["name"], getDesc(sdoAdapter, p["simpleName"],p["name"]), p["type"], p["enums"], "#panel-body-opt-", p["isOptional"], p["rootIsOptional"], p["multipleValuesAllowed"])
             }
         }
         $('#panel-body-opt-' + myPanelId).slideUp(0);
@@ -187,7 +180,7 @@ function generateBox(iaBox, $jqueryElement, ds, options, cb){
             if(Array.isArray(dsType)){
                 var i=0;
                 for(var t of dsType){
-                    var subClasses = getAllSubClasses(t).sort();
+                    var subClasses = getAllSubClasses(sdoAdapter, t).sort();
                     $("#panel-body-" + myPanelId).append('<select name="select" class="form-control input-myBackground input-mySelect" id="' + "sub_" + myPanelId +'_'+i+ '" title="Select a sub-class if you want to specify further">');
                     var dropdown = $('#' + 'sub_' + myPanelId + '_' + i);
                     dropdown.append('<option value="' + t + '">Default: ' + t + '</option>');
@@ -198,7 +191,7 @@ function generateBox(iaBox, $jqueryElement, ds, options, cb){
                     i++;
                 }
             }else{
-                var subClasses = getAllSubClasses(dsType).sort();
+                var subClasses = getAllSubClasses(sdoAdapter, dsType).sort();
                 $("#panel-body-" + myPanelId).append('<select name="select" class="form-control input-myBackground input-mySelect" id="' + "sub_" + myPanelId + '" title="Select a sub-class if you want to specify further">');
                 var dropdown = $('#' + 'sub_' + myPanelId);
                 dropdown.append('<option value="' + dsType + '">Default: ' + dsType + '</option>');
@@ -232,7 +225,7 @@ function generateBox(iaBox, $jqueryElement, ds, options, cb){
                 .click(function (e) {
                     e.preventDefault();
                     onclick({
-                        "jsonLd": $("#panel-footer-btn-Preview-" + thisPanelId).prop("already_annotation_created") ? $("#panel-footer-btn-Preview-" + thisPanelId).prop("already_annotation_created") : (createJsonLD ? semantifyCreateJsonLd(thisPanelId) : null),
+                        "jsonLd": $("#panel-footer-btn-Preview-" + thisPanelId).prop("already_annotation_created") ? $("#panel-footer-btn-Preview-" + thisPanelId).prop("already_annotation_created") : (createJsonLD ? semantifyCreateJsonLd(thisPanelId, sdoAdapter) : null),
                         "dsHash": ds && ds["hash"],
                         "annId": $('#panel-' + thisPanelId).data("smtfyAnnId"),
                         "webId": $('#panel-' + thisPanelId).data("smtfyWebId"),
@@ -261,7 +254,7 @@ function getProps(props, level, fatherType, myPanelId, fatherIsOptional) {
         var prop = props[p];
         var range = prop['sh:or']['@list'][0];
         var isOptional = prop["sh:minCount"] ? prop["sh:minCount"] === 0 : true;
-        var name = removeNS(prop["sh:path"]);
+        var name = propName(prop["sh:path"]);
         if (!range['sh:node'] && (range["sh:datatype"] || range['sh:in'])) {
             var simpleProp = {
                 "simpleName": name,
@@ -331,9 +324,9 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
             break;
         case "xsd:boolean":
             $(panel + panelId).append('<select style="color:#aaa" name="select" class="form-control input-myBackground" id="' + id + '" title=" ' + desc + '"></select>');
-            $('#' + id).append('<option value="" selected style="color:#aaa">'+ name + '</option><option  style="color:#000" value="true">true</option><option style="color:#000" value="false">false</option>');
+            $(idSel(id)).append('<option value="" selected style="color:#aaa">'+ name + '</option><option  style="color:#000" value="true">true</option><option style="color:#000" value="false">false</option>');
 
-            $('#' + id).change(function(){
+            $(idSel(id)).change(function(){
                 if ($(this).val()=="") $(this).css({color: "#aaa"});
                 else $(this).css({color: "#000"});
             });
@@ -341,19 +334,19 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
             break;
         case "xsd:date":
             $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-            $('#' + id).datetimepicker({
+            $(idSel(id)).datetimepicker({
                 format: 'YYYY-MM-DD'
             });
             break;
         case "xsd:dateTime":
             $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-            $('#' + id).datetimepicker({
+            $(idSel(id)).datetimepicker({
                 format: 'YYYY-MM-DDTHH:mm'
             });
             break;
         case "xsd:time":
             $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
-            $('#' + id).datetimepicker({
+            $(idSel(id)).datetimepicker({
                 format: 'HH:mm'
             });
             break;
@@ -363,12 +356,12 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
             } else {
 
                 $(panel + panelId).append('<select style="color:#bfc0bf" name="select" class="form-control input-myBackground" id="' + id + '" title=" ' + desc + '">');
-                $('#' + id).change(function(){
+                $(idSel(id)).change(function(){
                     if ($(this).val()=="") $(this).css({color: "#bfc0bf"});
                     else $(this).css({color: "#555555"});
                 });
             }
-            var enumField = $('#' + id);
+            var enumField = $(idSel(id));
             enumField.append('<option value="" selected style="color:#bfc0bf">Select: ' + name + '</option>');
             enumerations.forEach(function (e) {
                 enumField.append('<option style="color:#555555" value="' + e + '">' + e + '</option>');
@@ -376,7 +369,7 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
             enumField.append('</select>');
             break;
     }
-    $("#" + id)
+    $(idSel(id))
         .data("type", type)
         .data("enumerations", enumerations)
         .data("isOptional", optional)
@@ -447,7 +440,7 @@ function fillBoxAnnotation(iaBox, ds, options, cb) {
                 $('#sub_' + panelId).val(flatJson['@type']).change();
             }
             for (var a of getAllInputs(panelId)) {
-                var $inputField = $("#" + a);
+                var $inputField = $(idSel(a));
                 var path = $inputField.data("name");
                 var tempValue = flatJson[path.replace(/-/g, ".")];
                 if (tempValue !== undefined && tempValue.length > 0) {
@@ -468,10 +461,12 @@ function fillBoxAnnotation(iaBox, ds, options, cb) {
             code.css("-webkit-mask", "linear-gradient(0deg, rgba(0,0,0,0) 20%, rgba(0,0,0,1) 70%)");
         }
     }
-    cb(iaBox);
+    if(cb) {
+        cb(iaBox);
+    }
 }
 
-function semantifyCreateJsonLd(id) {
+function semantifyCreateJsonLd(id, sdoAdapter) {
     var dsName;
     var schemaName = "Thing";
     panelRoots.forEach(function (t) {
@@ -494,8 +489,14 @@ function semantifyCreateJsonLd(id) {
     }
     var validPaths = [];
     var allPaths = [];
+    let context = Object.entries(sdoAdapter.getVocabularies());
+    if (context.length === 1 && context[0][0] === 'schema') {
+        context = context[0][1]
+    } else {
+        context = fromEntries(context.map(([k, v]) => ([k === 'schema' ? '@vocab' : k, v])));
+    }
     var resultJson = {
-        "@context": "http://schema.org/",
+        "@context": context,
         "@type": schemaName
     };
     var allRequired = true; //variable gets false if an required field is empty
@@ -512,7 +513,7 @@ function semantifyCreateJsonLd(id) {
     };
 
     for (var a of allInputs) {
-        var $inputField = $("#" + a);
+        var $inputField = $(idSel(a));
         var value = $inputField.val();
         var path = $inputField.data("name");
         var optional = $inputField.data("isOptional");
@@ -530,7 +531,7 @@ function semantifyCreateJsonLd(id) {
                 bAllPaths.push((bPaths.join("-")))
             }
             allInputs.forEach(function (b) {
-                var $inputElem = $("#" + b);
+                var $inputElem = $(idSel(b));
                 var bPath = $inputElem.data("name");
                 var bOptional = $inputElem.data("isOptional");
                 var bRootOptional = $inputElem.data("rootIsOptional");
@@ -570,7 +571,6 @@ function semantifyCreateJsonLd(id) {
             allPaths.forEach(function (a) {
                 validPaths.forEach(function (v) {
                     if (v === a["path"]) {
-
                         resultJson = set(resultJson, a["path"], a["name"])
                     }
                 });

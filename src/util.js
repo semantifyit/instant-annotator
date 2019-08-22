@@ -203,6 +203,57 @@ function createInjectionCodeForURL(UID) {
     return code;
 }
 
+const memoize = (fn) => {
+    const cache = {};
+    return (...args) => {
+        const n = JSON.stringify(args);
+        if (n in cache) {
+            return cache[n];
+        } else {
+            const result = fn(...args);
+            cache[n] = result;
+            return result;
+        }
+    };
+};
+
+const memoizeCb = (fn) => {
+    const cache = {};
+    const func = (...args) => {
+        const cb = args.pop();
+        const n = JSON.stringify(args);
+        if (cache[n] && cache[n].ready) {
+            cb(cache[n].data);
+        } else if(cache[n] && !cache[n].ready) {
+            setTimeout(() => func(...args, cb), 50);
+        } else {
+            cache[n] = { ready: false, data: null };
+            fn(...args, (result) => {
+                cache[n].ready = true;
+                cache[n].data = result;
+                cb(result);
+            });
+        }
+    };
+    return func;
+};
+
+function idSel(str) {
+    return '[id="' + str + '"]'
+}
+
+function propName(str) {
+    return str.startsWith('schema') ? removeNS(str) : str;
+}
+
+function fromEntries (iterable) {
+    return [...iterable].reduce((obj, [key, val]) => {
+        obj[key] = val;
+        return obj
+    }, {})
+}
+
+
 export {
     removeNS,
     unique,
@@ -225,4 +276,9 @@ export {
     copyStr,
     createInjectionCodeForURL,
     httpGetHeaders,
+    memoize,
+    memoizeCb,
+    idSel,
+    propName,
+    fromEntries
 }
