@@ -8,7 +8,7 @@ import * as Util from "./util";
 import { getAllSubClasses, getDesc } from "./schemaOrg";
 import { parseButtons } from "./buttons";
 import { semantifyUrl } from "./globals";
-import { getSdoHandler } from "./ds/vocabHandler";
+import { getSdoHandler, getSchemaSdoHandler } from "./ds/vocabHandler";
 
 const { httpGet, removeNS, unique, containsArray, syntaxHighlight, flatten, set, htmlList, send_snackbarMSG, idSel, propName, memoizeCb, fromEntries } = Util;
 
@@ -620,6 +620,7 @@ const util = {
     httpPostJson: Util.httpPostJson,
     httpCall: Util.httpCall,
     httpGet: Util.httpGet,
+    sdoAdapter: getSchemaSdoHandler
 };
 
 export {

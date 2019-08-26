@@ -57,7 +57,13 @@ const getSdoHandler = (ds, cb) => {
     getSdoHandlerMem(vocabs, cb);
 };
 
+const getSchemaSdoHandler = (cb) => {
+    const sdoAdapt = new sdoAdapter();
+    sdoAdapt.addVocabularies(["https://raw.githubusercontent.com/schemaorg/schemaorg/master/data/releases/3.9/all-layers.jsonld"], () => cb(sdoAdapt));
+};
+
 
 export {
     getSdoHandler,
+    getSchemaSdoHandler
 }
