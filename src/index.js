@@ -247,12 +247,14 @@ function generateBox(iaBox, $jqueryElement, ds, options, sdoAdapter, cb){
     }
 }
 
+const getList = (prop) => prop['@list'] ? prop['@list'] : prop;
+
 function getProps(props, level, fatherType, myPanelId, fatherIsOptional) {
     var propList = [];
     for (var p in props) {
         if (!props.hasOwnProperty(p)) continue;
         var prop = props[p];
-        var range = prop['sh:or']['@list'][0];
+        var range = getList(prop['sh:or'])[0];
         var isOptional = prop["sh:minCount"] ? prop["sh:minCount"] === 0 : true;
         var name = propName(prop["sh:path"]);
         if (!range['sh:node'] && (range["sh:datatype"] || range['sh:in'])) {
@@ -269,7 +271,7 @@ function getProps(props, level, fatherType, myPanelId, fatherIsOptional) {
             if (range['sh:in']) {
                 simpleProp["type"] = "Enumeration";
                 var enums = [];
-                range['sh:in']['@list'].forEach(function (ele) {
+                getList(range['sh:in']).forEach(function (ele) {
                     enums.push(removeNS(ele));
                 });
                 simpleProp["enums"] = enums;
