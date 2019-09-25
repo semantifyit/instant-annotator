@@ -1,5 +1,6 @@
 import sdoAdapter from "./sdoAdapter";
 import { memoizeCb } from "../util";
+import { semantifyUrl } from '../globals';
 
 // vvv from semantify-core/public/domainspecifications/assets/vocabularyHandler.js
 
@@ -25,12 +26,12 @@ function analyzeDSVocabularies(ds) {
 //constructs the URL for given vocabulary IRIs
 function getVocabURLForIRIs(vocabulariesArray) {
     let result = [];
+    let semantifyApiVocab = semantifyUrl + "/api/vocabulary/namespace/";
     for (let i = 0; i < vocabulariesArray.length; i++) {
         if (vocabulariesArray[i].indexOf("schema.org") !== -1) {
             result.push("https://raw.githubusercontent.com/schemaorg/schemaorg/master/data/releases/" + getSDOVersion(vocabulariesArray[i]) + "/all-layers.jsonld");
         } else if (vocabulariesArray[i].indexOf("dachkg.org") !== -1) {
-            let dachVocabURL = "https://raw.githubusercontent.com/STIInnsbruck/dachkg-schema/master/schema/dachkg_schema.json";
-            result.push(dachVocabURL);
+            result.push(semantifyApiVocab + encodeURIComponent(vocabulariesArray[i]));
         }
     }
     return result;
