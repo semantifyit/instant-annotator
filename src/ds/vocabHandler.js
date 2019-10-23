@@ -41,7 +41,7 @@ function getVocabURLForIRIs(vocabulariesArray) {
 function getSDOVersion(domainSpecification) {
     let versionRegex = /.*schema\.org\/version\/([0-9\.]+)\//g;
     let match = versionRegex.exec(domainSpecification);
-    return parseFloat(match[1]);
+    return match[1];
 }
 
 // ^^^ from semantify-core/public/domainspecifications/assets/vocabularyHandler.js
@@ -60,7 +60,7 @@ const getSdoHandler = (ds, cb) => {
 
 const getSchemaSdoHandler = (cb) => {
     const sdoAdapt = new sdoAdapter();
-    sdoAdapt.addVocabularies(["https://raw.githubusercontent.com/schemaorg/schemaorg/master/data/releases/3.9/all-layers.jsonld"], () => cb(sdoAdapt));
+    sdoAdapt.addVocabularies(["https://raw.githubusercontent.com/schemaorg/schemaorg/master/data/releases/4.0/all-layers.jsonld"], () => cb(sdoAdapt));
 };
 
 
