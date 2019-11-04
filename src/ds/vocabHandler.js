@@ -60,7 +60,7 @@ const getSdoHandler = (ds, cb) => {
 
 const getSchemaSdoHandler = (cb) => {
     const sdoAdapt = new sdoAdapter();
-    sdoAdapt.addVocabularies(["https://raw.githubusercontent.com/schemaorg/schemaorg/master/data/releases/4.0/all-layers.jsonld"], () => cb(sdoAdapt));
+    sdoAdapt.addVocabularies(["https://raw.githubusercontent.com/schemaorg/schemaorg/master/data/releases/5.0/all-layers.jsonld"], () => cb(sdoAdapt));
 };
 
 
