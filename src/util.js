@@ -253,6 +253,10 @@ function fromEntries (iterable) {
     }, {})
 }
 
+function cleanEnumProp (str) {
+    return str.split(/[/:]/).pop();
+}
+
 
 export {
     removeNS,
@@ -280,5 +284,6 @@ export {
     memoizeCb,
     idSel,
     propName,
-    fromEntries
+    fromEntries,
+    cleanEnumProp
 }

@@ -10,7 +10,7 @@ import { parseButtons } from "./buttons";
 import { semantifyUrl } from "./globals";
 import { getSdoHandler, getSchemaSdoHandler } from "./ds/vocabHandler";
 
-const { httpGet, removeNS, unique, containsArray, syntaxHighlight, flatten, set, htmlList, send_snackbarMSG, idSel, propName, memoizeCb, fromEntries } = Util;
+const { httpGet, removeNS, unique, containsArray, syntaxHighlight, flatten, set, htmlList, send_snackbarMSG, idSel, propName, memoizeCb, fromEntries, cleanEnumProp } = Util;
 
 let panelRoots = [];
 let typeList = [];
@@ -272,7 +272,10 @@ function getProps(props, level, fatherType, myPanelId, fatherIsOptional) {
                 simpleProp["type"] = "Enumeration";
                 var enums = [];
                 getList(range['sh:in']).forEach(function (ele) {
-                    enums.push(removeNS(ele));
+                    if(ele && ele.startsWith('schema:')) {
+                        ele = ele.replace('schema:', 'http://schema.org/')
+                    }
+                    enums.push(ele);
                 });
                 simpleProp["enums"] = enums;
             }
@@ -366,7 +369,7 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
             var enumField = $(idSel(id));
             enumField.append('<option value="" selected style="color:#bfc0bf">Select: ' + name + '</option>');
             enumerations.forEach(function (e) {
-                enumField.append('<option style="color:#555555" value="' + e + '">' + e + '</option>');
+                enumField.append('<option style="color:#555555" value="' + e + '">' + cleanEnumProp(e) + '</option>');
             });
             enumField.append('</select>');
             break;
@@ -445,10 +448,11 @@ function fillBoxAnnotation(iaBox, ds, options, cb) {
                 var $inputField = $(idSel(a));
                 var path = $inputField.data("name");
                 var tempValue = flatJson[path.replace(/-/g, ".")];
-                if (tempValue !== undefined && tempValue.length > 0) {
-                    tempValue = tempValue.replace('http://schema.org/', '');
+                if (tempValue !== undefined && tempValue.length > 0 && $inputField.data("type") === "Enumeration" && !tempValue.startsWith('http://schema.org/')) {
+                    tempValue = 'http://schema.org/' + tempValue;
                 }
                 $inputField.val(tempValue);
+                $inputField.trigger("change");
             }
         } else {
             $("#panel-body-" + panelId).append('This annotation does not have any Domain Specification. Therefore you won`t be able to edit it.');
