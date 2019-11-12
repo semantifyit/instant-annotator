@@ -272,7 +272,11 @@ function getProps(props, level, fatherType, myPanelId, fatherIsOptional) {
                 simpleProp["type"] = "Enumeration";
                 var enums = [];
                 getList(range['sh:in']).forEach(function (ele) {
-                    enums.push(removeNS(ele));
+                    if(typeof ele === 'object' && ele['@id']) {
+                        enums.push(removeNS(ele['@id']));
+                    } else if(typeof ele === 'string') {
+                        enums.push(removeNS(ele));
+                    }
                 });
                 simpleProp["enums"] = enums;
             }
@@ -449,6 +453,7 @@ function fillBoxAnnotation(iaBox, ds, options, cb) {
                     tempValue = tempValue.replace('http://schema.org/', '');
                 }
                 $inputField.val(tempValue);
+                $inputField.trigger("change"); // trigger select color change
             }
         } else {
             $("#panel-body-" + panelId).append('This annotation does not have any Domain Specification. Therefore you won`t be able to edit it.');

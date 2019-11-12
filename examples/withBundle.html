@@ -28,7 +28,10 @@
                 streetAddress: 'addre'
             }
         },
-        description: '0100010'
+        description: '0100010',
+        offers: {
+            availability: 'SoldOut'
+        }
     };
     let options = {
         annotation,
@@ -52,5 +55,6 @@
         console.log(box);
     });
     InstantAnnotation.createIABox('divid5', 'SyqlG3b4Mkf', {smtfyAnnotationUID: 'ZEbX5q3Xz'});
+    InstantAnnotation.createIABox('divid5', 'SyqlG3b4Mkf', {annotation});
 </script>
 </html>
