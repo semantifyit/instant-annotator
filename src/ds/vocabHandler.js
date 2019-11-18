@@ -13,7 +13,7 @@ function analyzeDSVocabularies(ds) {
     }
     if (ds && ds["@context"]) {
         let contextKeys = Object.keys(ds["@context"]);
-        let standardContextIdentifiers = ["rdf", "rdfs", "sh", "xsd", "schema", "sh:targetClass", "sh:property", "sh:path", "sh:nodeKind", "sh:datatype", "sh:node", "sh:class", "sh:or", "sh:in"];
+        let standardContextIdentifiers = ["rdf", "rdfs", "sh", "xsd", "schema", "sh:targetClass", "sh:property", "sh:path", "sh:nodeKind", "sh:datatype", "sh:node", "sh:class", "sh:or", "sh:in", "sh:languageIn", "sh:equals", "sh:disjoint", "sh:lessThan", "sh:lessThanOrEquals"];
         for (let i = 0; i < contextKeys.length; i++) {
             if (standardContextIdentifiers.indexOf(contextKeys[i]) === -1) {
                 vocabularies.push(ds["@context"][contextKeys[i]]);
