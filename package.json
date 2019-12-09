@@ -17,10 +17,10 @@
     "cross-env": "^6.0.3",
     "eslint": "^5.16.0",
     "eslint-plugin-import": "^2.18.0",
-    "terser-webpack-plugin": "^1.4.1",
-    "webpack": "^4.39.2",
-    "webpack-cli": "^3.3.7",
-    "webpack-dev-server": "^3.8.0"
+    "terser-webpack-plugin": "^2.2.2",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.9.0"
   },
   "dependencies": {
     "bootstrap": "^3.4.1",
