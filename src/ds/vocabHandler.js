@@ -1,4 +1,4 @@
-import sdoAdapter from "./sdoAdapter";
+import SdoAdapter from "schema-org-adapter";
 import { memoizeCb } from "../util";
 import { semantifyUrl } from '../globals';
 
@@ -47,8 +47,8 @@ function getSDOVersion(domainSpecification) {
 // ^^^ from semantify-core/public/domainspecifications/assets/vocabularyHandler.js
 
 const getSdoHandlerSingle = (vocabs, cb) => {
-    const sdoAdapt = new sdoAdapter();
-    sdoAdapt.addVocabularies(vocabs, () => cb(sdoAdapt));
+    const sdoAdapt = new SdoAdapter();
+    sdoAdapt.addVocabularies(vocabs).then(() => cb(sdoAdapt));
 };
 
 const getSdoHandlerMem = memoizeCb(getSdoHandlerSingle);
@@ -59,8 +59,11 @@ const getSdoHandler = (ds, cb) => {
 };
 
 const getSchemaSdoHandler = (cb) => {
-    const sdoAdapt = new sdoAdapter();
-    sdoAdapt.addVocabularies(["https://raw.githubusercontent.com/schemaorg/schemaorg/master/data/releases/5.0/all-layers.jsonld"], () => cb(sdoAdapt));
+    const sdoAdapter = new SdoAdapter();
+    sdoAdapter.constructSDOVocabularyURL('latest', 'all-layers')
+        .then((sdoUrl) =>
+            sdoAdapter.addVocabularies([sdoUrl])
+        ).then(() => cb(sdoAdapter))
 };
 
 
