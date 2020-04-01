@@ -43,8 +43,18 @@ const getSchemaSdoHandler = (cb) => {
         ).then(() => cb(sdoAdapter))
 };
 
+const getEnumMembers = (sdoAdapter, enumId) => {
+    try {
+        const enumInst = sdoAdapter.getEnumeration(enumId);
+        return enumInst.getEnumerationMembers();
+    } catch(e){
+        return undefined;
+    }
+};
+
 
 export {
     getSdoHandler,
-    getSchemaSdoHandler
+    getSchemaSdoHandler,
+    getEnumMembers
 }

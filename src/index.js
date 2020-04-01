@@ -8,9 +8,9 @@ import * as Util from "./util";
 import { getAllSubClasses, getDesc } from "./schemaOrg";
 import { parseButtons } from "./buttons";
 import { semantifyUrl } from "./globals";
-import { getSdoHandler, getSchemaSdoHandler } from "./vocabHandler";
+import {getSdoHandler, getSchemaSdoHandler, getEnumMembers} from "./vocabHandler";
 
-const { httpGet, removeNS, unique, containsArray, syntaxHighlight, flatten, set, htmlList, send_snackbarMSG, idSel, propName, memoizeCb, fromEntries } = Util;
+const { httpGet, removeNS, unique, containsArray, syntaxHighlight, flatten, set, htmlList, send_snackbarMSG, idSel, propName, memoizeCb, fromEntries, uid } = Util;
 
 let panelRoots = [];
 let typeList = [];
@@ -22,6 +22,7 @@ function getDefaultOptions() {
         title: undefined,
         panelColClass: "col-lg-3 col-md-4 col-sm-6 col-xs-12",
         withSubClassSelection: true,
+        withMultValues: false,
         annotation: undefined,
         smtfyAnnotationUID: undefined,
         smtfySemantifyWebsiteUID: "Hkqtxgmkz", // default website
@@ -141,7 +142,7 @@ function generateBox(iaBox, $jqueryElement, ds, options, sdoAdapter, cb){
         var dsProps = curDs["sh:property"];
         var req_props = [];
         var opt_props = [];
-        var props = getProps(dsProps, "", dsType, myPanelId, false);
+        var props = getProps(dsProps, "", dsType, myPanelId, false, sdoAdapter);
 
         for (var prop of props) {
             if (!prop["isOptional"] && !prop["rootIsOptional"]) {
@@ -249,29 +250,31 @@ function generateBox(iaBox, $jqueryElement, ds, options, sdoAdapter, cb){
 
 const getList = (prop) => prop['@list'] ? prop['@list'] : prop;
 
-function getProps(props, level, fatherType, myPanelId, fatherIsOptional) {
+function getProps(props, level, fatherType, myPanelId, fatherIsOptional, sdoAdapter) {
     var propList = [];
     for (var p in props) {
         if (!props.hasOwnProperty(p)) continue;
         var prop = props[p];
         var range = getList(prop['sh:or'])[0];
         var isOptional = prop["sh:minCount"] ? prop["sh:minCount"] === 0 : true;
+        var multAllowed = prop["sh:maxCount"] ? prop["sh:maxCount"] > 1 : true;
         var name = propName(prop["sh:path"]);
-        if (!range['sh:node'] && (range["sh:datatype"] || range['sh:in'])) {
+        const enumerationMembers = getEnumMembers(sdoAdapter, range["sh:class"]);
+        if (!range['sh:node'] && (range["sh:datatype"] || range['sh:in'] || enumerationMembers)) {
             var simpleProp = {
                 "simpleName": name,
                 "name": (level === "" ? "" : level + "-") + name,
                 "type": range["sh:datatype"],
                 "fatherType": fatherType,
                 "isOptional": isOptional,
-                "multipleValuesAllowed": false, // only used for select enum, deprecate for now
+                "multipleValuesAllowed": multAllowed,
                 "rootIsOptional": fatherIsOptional
             };
 
-            if (range['sh:in']) {
+            if (range['sh:in'] || enumerationMembers) {
                 simpleProp["type"] = "Enumeration";
                 var enums = [];
-                getList(range['sh:in']).forEach(function (ele) {
+                getList(range['sh:in'] || enumerationMembers).forEach(function (ele) {
                     if(typeof ele === 'object' && ele['@id']) {
                         enums.push(removeNS(ele['@id']));
                     } else if(typeof ele === 'string') {
@@ -306,7 +309,7 @@ function getProps(props, level, fatherType, myPanelId, fatherIsOptional) {
                     myLevel,
                     range["sh:class"],
                     myPanelId,
-                    fIsOptional));
+                    fIsOptional, sdoAdapter));
         } else {
             console.log("UNKOWN PROP", prop)
         }
@@ -314,22 +317,19 @@ function getProps(props, level, fatherType, myPanelId, fatherIsOptional) {
     return propList;
 }
 
-function insertInputField(panelId, name, desc, type, enumerations, panel, optional, rootIsOptional, multipleValuesAllowed) {
-    var id = "IA_" + panelId + "_" + name;
-    var temp = false;
-    if (rootIsOptional && !optional) {
-        temp = true;
-    }
+function insertInputField(panelId, name, desc, type, enumerations, panel, optional, rootIsOptional, multipleValuesAllowed, additionalValueAppendTo, additionalId) {
+    var id = "IA_" + panelId + "_" + name + (additionalId ? "_"+additionalId : "");
+    const appendTo = additionalValueAppendTo ? idSel(additionalValueAppendTo) : panel + panelId;
     switch (type) {
         case "xsd:string":
         case "xsd:anyURI":
         case "xsd:double":
         case "xsd:float":
         case "xsd:integer":
-            $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+            $(appendTo).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
             break;
         case "xsd:boolean":
-            $(panel + panelId).append('<select style="color:#aaa" name="select" class="form-control input-myBackground" id="' + id + '" title=" ' + desc + '"></select>');
+            $(appendTo).append('<select style="color:#aaa" name="select" class="form-control input-myBackground" id="' + id + '" title=" ' + desc + '"></select>');
             $(idSel(id)).append('<option value="" selected style="color:#aaa">'+ name + '</option><option  style="color:#000" value="true">true</option><option style="color:#000" value="false">false</option>');
 
             $(idSel(id)).change(function(){
@@ -339,34 +339,29 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
 
             break;
         case "xsd:date":
-            $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+            $(appendTo).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
             $(idSel(id)).datetimepicker({
                 format: 'YYYY-MM-DD'
             });
             break;
         case "xsd:dateTime":
-            $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+            $(appendTo).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
             $(idSel(id)).datetimepicker({
                 format: 'YYYY-MM-DDTHH:mm'
             });
             break;
         case "xsd:time":
-            $(panel + panelId).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
+            $(appendTo).append('<input type="text" class="form-control input-myBackground" id="' + id + '" placeholder="' + name + '" title="' + desc + '">');
             $(idSel(id)).datetimepicker({
                 format: 'HH:mm'
             });
             break;
         case "Enumeration":
-            if (multipleValuesAllowed) {
-                $(panel + panelId).append('<select multiple name="select" class="form-control input-myBackground input-mySelect" id="' + id + '" title=" ' + "You can add more than one value by pressing *Ctrl* \n\n" + desc + '">');
-            } else {
-
-                $(panel + panelId).append('<select style="color:#bfc0bf" name="select" class="form-control input-myBackground" id="' + id + '" title=" ' + desc + '">');
-                $(idSel(id)).change(function(){
-                    if ($(this).val()=="") $(this).css({color: "#bfc0bf"});
-                    else $(this).css({color: "#555555"});
-                });
-            }
+            $(appendTo).append('<select style="color:#bfc0bf;' + (multipleValuesAllowed ? '-webkit-appearance: none;' : '') + '" name="select" class="form-control input-myBackground" id="' + id + '" title=" ' + desc + '">');
+            $(idSel(id)).change(function(){
+                if ($(this).val()=="") $(this).css({color: "#bfc0bf"});
+                else $(this).css({color: "#555555"});
+            });
             var enumField = $(idSel(id));
             enumField.append('<option value="" selected style="color:#bfc0bf">Select: ' + name + '</option>');
             enumerations.forEach(function (e) {
@@ -375,6 +370,23 @@ function insertInputField(panelId, name, desc, type, enumerations, panel, option
             enumField.append('</select>');
             break;
     }
+
+    if (multipleValuesAllowed && !additionalValueAppendTo){
+        $(appendTo).append('<span id="' + (id + "_addmore") +'" style="position: relative;color:lightgray;cursor: pointer;float:right;top: -38px;right: 4px;height: 0;"><i class="material-icons">add_circle_outline</i></span>');
+        $(appendTo).append('<div id="' + (id + '_moreContainer') + '" style="margin-right:30px"/>');
+        $(idSel(id+ "_addmore") ).click(() => {
+            insertInputField(panelId, name, desc, type, enumerations, panel, optional, rootIsOptional, multipleValuesAllowed, id+"_moreContainer", uid())//isAdditionalValue
+        });
+    }
+
+    if(additionalValueAppendTo) {
+        $(appendTo).append('<span id="' + (id + "_remove") +'" style="position: relative;color:lightgray;cursor: pointer;float:right;top: -38px;right: -30px;height: 0;"><i class="material-icons">clear</i></span>');
+        $(idSel(id+ "_remove") ).click(() => {
+            $(idSel(id)).remove();
+            $(idSel(id+"_remove")).remove();
+        });
+    }
+
     $(idSel(id))
         .data("type", type)
         .data("enumerations", enumerations)
@@ -445,6 +457,7 @@ function fillBoxAnnotation(iaBox, ds, options, cb) {
             } else {
                 $('#sub_' + panelId).val(flatJson['@type']).change();
             }
+            // todo support array values .match(/.*(\.[0-9]+)/)
             for (var a of getAllInputs(panelId)) {
                 var $inputField = $(idSel(a));
                 var path = $inputField.data("name");
@@ -574,16 +587,14 @@ function semantifyCreateJsonLd(id, sdoAdapter) {
                 var x = temp.join("-") + "-@type";
                 validPaths.push(x);
             }
-
             allPaths.forEach(function (a) {
                 validPaths.forEach(function (v) {
                     if (v === a["path"]) {
-                        resultJson = set(resultJson, a["path"], a["name"])
+                        resultJson = set(resultJson, a["path"], a["name"].slice())
                     }
                 });
             });
-
-            resultJson = set(resultJson, path, value)
+            resultJson = set(resultJson, path, value, true)
         }
 
     }

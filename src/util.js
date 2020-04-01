@@ -47,7 +47,7 @@ function remove(arr, what) {
     }
 }
 
-function set(obj, path, value) {
+function set(obj, path, value, add) {
     var schema = obj;
     var pList = path.split('-');
     var len = pList.length;
@@ -56,7 +56,18 @@ function set(obj, path, value) {
         if (!schema[elem]) schema[elem] = {};
         schema = schema[elem];
     }
-    schema[pList[len - 1]] = value;
+    const pos = pList[len - 1];
+    if (add) {
+        if (Array.isArray(schema[pos])) {
+            schema[pos].push(value);
+        } else if(schema[pos]) {
+            schema[pos] = [schema[pos], value];
+        } else {
+            schema[pos] = value;
+        }
+    } else {
+        schema[pos] = value;
+    }
     return obj;
 }
 
@@ -135,8 +146,9 @@ function containsArray(obj) {
         var o = queue.shift();
 
         found = Object.keys(o).some(function (k) {
-            if (k!=='@type' && o[k] instanceof Array && k!=='@context')
+            if (k!=='@type' && k!=='@context' && o[k] instanceof Array && !o[k].every(i => typeof i === 'string')) {
                 return true;
+            }
 
             if (o[k] !== null && typeof o[k] === 'object')
                 queue.push(o[k]);
@@ -253,6 +265,10 @@ function fromEntries (iterable) {
     }, {})
 }
 
+let _uid = 0;
+function uid(){
+    return (++_uid).toString();
+}
 
 export {
     removeNS,
@@ -280,5 +296,6 @@ export {
     memoizeCb,
     idSel,
     propName,
-    fromEntries
+    fromEntries,
+    uid
 }
