@@ -93,6 +93,7 @@ The possible options are:
 - title: string, the title of the box,
 - panelColClass: string, css class(es) to add to the main bootstrap panel (eg. change col classes, width, ..),
 - withSubClassSelection: boolean, allow the selection of subclassed (default is true)
+- withMultValues: boolean, allow adding multiple values for a literal property.
 - annotation: object, fill the box with a preexisting annotation
 - smtfyAnnotationUID: string, fill the box with a semantify annotation,
 - smtfySemantifyWebsiteUID: string, for save button, to which semantify website (uid) to save to
@@ -104,6 +105,7 @@ InstantAnnotation.createIABox('myIABox', 'w8Ki-xnbG', {
     title: "Hello World",
     panelColClass: "fullwidth", // define fullwidth class in css
     withSubClassSelection: true,
+    withMultValues: true,
     smtfyAnnotationUID: "some semantify annotation uid",
     smtfySemantifyWebsiteUID: "some semantify website uid",
     smtfySemantifyWebsiteSecret: "some semantify website secret",
