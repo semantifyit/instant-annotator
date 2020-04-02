@@ -117,11 +117,11 @@ function clone(obj) {
     return JSON.parse(JSON.stringify(obj));
 }
 
-function flatten(o) {
+function flatten(o) { // flatten all but array of strings
     var prefix = arguments[1] || "", out = arguments[2] || {}, name;
     for (name in o) {
         if (o.hasOwnProperty(name)) {
-            typeof o[name] === "object" ? flatten(o[name], prefix + name + '.', out) :
+            (typeof o[name] === "object" && !isArrayOfStrings(o[name])) ? flatten(o[name], prefix + name + '.', out) :
                 out[prefix + name] = o[name];
         }
     }
@@ -146,7 +146,7 @@ function containsArray(obj) {
         var o = queue.shift();
 
         found = Object.keys(o).some(function (k) {
-            if (k!=='@type' && k!=='@context' && o[k] instanceof Array && !o[k].every(i => typeof i === 'string')) {
+            if (k!=='@type' && k!=='@context' && o[k] instanceof Array && !isArrayOfStrings(o[k])) {
                 return true;
             }
 
@@ -270,6 +270,8 @@ function uid(){
     return (++_uid).toString();
 }
 
+const isArrayOfStrings = (o) => Array.isArray(o) && o.every(i => typeof i === 'string');
+
 export {
     removeNS,
     unique,
@@ -297,5 +299,6 @@ export {
     idSel,
     propName,
     fromEntries,
-    uid
+    uid,
+    isArrayOfStrings
 }

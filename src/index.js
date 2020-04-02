@@ -10,7 +10,7 @@ import { parseButtons } from "./buttons";
 import { semantifyUrl } from "./globals";
 import {getSdoHandler, getSchemaSdoHandler, getEnumMembers} from "./vocabHandler";
 
-const { httpGet, removeNS, unique, containsArray, syntaxHighlight, flatten, set, htmlList, send_snackbarMSG, idSel, propName, memoizeCb, fromEntries, uid } = Util;
+const { httpGet, removeNS, unique, containsArray, syntaxHighlight, flatten, set, htmlList, send_snackbarMSG, idSel, propName, memoizeCb, fromEntries, uid, isArrayOfStrings } = Util;
 
 let panelRoots = [];
 let typeList = [];
@@ -142,7 +142,7 @@ function generateBox(iaBox, $jqueryElement, ds, options, sdoAdapter, cb){
         var dsProps = curDs["sh:property"];
         var req_props = [];
         var opt_props = [];
-        var props = getProps(dsProps, "", dsType, myPanelId, false, sdoAdapter);
+        var props = getProps(dsProps, "", dsType, myPanelId, false, sdoAdapter, options.withMultValues);
 
         for (var prop of props) {
             if (!prop["isOptional"] && !prop["rootIsOptional"]) {
@@ -250,7 +250,7 @@ function generateBox(iaBox, $jqueryElement, ds, options, sdoAdapter, cb){
 
 const getList = (prop) => prop['@list'] ? prop['@list'] : prop;
 
-function getProps(props, level, fatherType, myPanelId, fatherIsOptional, sdoAdapter) {
+function getProps(props, level, fatherType, myPanelId, fatherIsOptional, sdoAdapter, withMultValues) {
     var propList = [];
     for (var p in props) {
         if (!props.hasOwnProperty(p)) continue;
@@ -267,7 +267,7 @@ function getProps(props, level, fatherType, myPanelId, fatherIsOptional, sdoAdap
                 "type": range["sh:datatype"],
                 "fatherType": fatherType,
                 "isOptional": isOptional,
-                "multipleValuesAllowed": multAllowed,
+                "multipleValuesAllowed": withMultValues ? multAllowed : false,
                 "rootIsOptional": fatherIsOptional
             };
 
@@ -309,7 +309,7 @@ function getProps(props, level, fatherType, myPanelId, fatherIsOptional, sdoAdap
                     myLevel,
                     range["sh:class"],
                     myPanelId,
-                    fIsOptional, sdoAdapter));
+                    fIsOptional, sdoAdapter, withMultValues));
         } else {
             console.log("UNKOWN PROP", prop)
         }
@@ -462,11 +462,23 @@ function fillBoxAnnotation(iaBox, ds, options, cb) {
                 var $inputField = $(idSel(a));
                 var path = $inputField.data("name");
                 var tempValue = flatJson[path.replace(/-/g, ".")];
-                if (tempValue !== undefined && tempValue.length > 0) {
+                if(isArrayOfStrings(tempValue)) {
+                    $inputField.val(tempValue[0].replace('http://schema.org/', ''));
+                    $inputField.trigger("change");
+                    const $addBtn = $(idSel(a+"_addmore"));
+                    if($addBtn) {
+                        for(let i = 1; i<tempValue.length; i++) {
+                            $addBtn.click();
+                            const $newInput = $(idSel(a+"_moreContainer")).children().eq((i-1)*2);
+                            $newInput.val(tempValue[i].replace('http://schema.org/', ''));
+                        }
+                    }
+
+                } else if (tempValue !== undefined && tempValue.length > 0) {
                     tempValue = tempValue.replace('http://schema.org/', '');
+                    $inputField.val(tempValue);
+                    $inputField.trigger("change"); // trigger select color change
                 }
-                $inputField.val(tempValue);
-                $inputField.trigger("change"); // trigger select color change
             }
         } else {
             $("#panel-body-" + panelId).append('This annotation does not have any Domain Specification. Therefore you won`t be able to edit it.');

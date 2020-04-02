@@ -14,8 +14,8 @@
         <div id="divid5"></div>
     </div>
 </body>
-<script src="../instantAnnotation.bundle.js"></script>
-<!--<script src="../dist/instantAnnotation.bundle.js"></script>-->
+<!--<script src="../instantAnnotation.bundle.js"></script>-->
+<script src="../dist/instantAnnotation.bundle.js"></script>
 <!--charset="utf-8"-->
 <script>
     let annotation2= {
@@ -46,44 +46,44 @@
 
     InstantAnnotation.createIABox('divid1', 'vVAnlt2Q7', {withMultValues: true, annotation: annotation2});
 
-    // InstantAnnotation.createIABox('divid1', 'TQyCYm-r5', null, (box) => {
-    //     console.log(box);
-    // });
-    // let annotation = {
-    //     '@type': 'Event',
-    //     name: 'foo',
-    //     location: {
-    //         address: {
-    //             streetAddress: 'addre'
-    //         }
-    //     },
-    //     description: '0100010',
-    //     offers: {
-    //         availability: 'SoldOut'
-    //     }
-    // };
-    // let options = {
-    //     annotation,
-    //     smtfySemantifyWebsiteUID: 'XWMhZ5jX_',
-    //     smtfySemantifyWebsiteSecret: 'ba10144ca5ee236355d562ee25352e0c',
-    // };
-    //
-    // InstantAnnotation.createIABox('divid2', 'BkJ6FkOzf', options , (box) => {
-    //     console.log(box);
-    // });
-    // InstantAnnotation.createIABox('divid3', null, {annotation}, (box) => {
-    //     console.log(box);
-    // });
-    // let alertButton = {
-    //     name: 'Alert',
-    //     icon:'add_alert',
-    //     "onlyIcon": false,
-    //     onclick: function() { alert("Hello World")}
-    // };
-    // InstantAnnotation.createIABox('divid4', 'SyqlG3b4Mkf', {buttons: ['preview', alertButton]}, (box) => {
-    //     console.log(box);
-    // });
-    // InstantAnnotation.createIABox('divid5', 'SyqlG3b4Mkf', {smtfyAnnotationUID: 'ZEbX5q3Xz'});
-    // InstantAnnotation.createIABox('divid5', 'SyqlG3b4Mkf', {annotation});
+    InstantAnnotation.createIABox('divid1', 'TQyCYm-r5', null, (box) => {
+        console.log(box);
+    });
+    let annotation = {
+        '@type': 'Event',
+        name: 'foo',
+        location: {
+            address: {
+                streetAddress: 'addre'
+            }
+        },
+        description: '0100010',
+        offers: {
+            availability: 'SoldOut'
+        }
+    };
+    let options = {
+        annotation,
+        smtfySemantifyWebsiteUID: 'XWMhZ5jX_',
+        smtfySemantifyWebsiteSecret: 'ba10144ca5ee236355d562ee25352e0c',
+    };
+
+    InstantAnnotation.createIABox('divid2', 'BkJ6FkOzf', options , (box) => {
+        console.log(box);
+    });
+    InstantAnnotation.createIABox('divid3', null, {annotation}, (box) => {
+        console.log(box);
+    });
+    let alertButton = {
+        name: 'Alert',
+        icon:'add_alert',
+        "onlyIcon": false,
+        onclick: function() { alert("Hello World")}
+    };
+    InstantAnnotation.createIABox('divid4', 'SyqlG3b4Mkf', {buttons: ['preview', alertButton]}, (box) => {
+        console.log(box);
+    });
+    InstantAnnotation.createIABox('divid5', 'SyqlG3b4Mkf', {smtfyAnnotationUID: 'ZEbX5q3Xz'});
+    InstantAnnotation.createIABox('divid5', 'SyqlG3b4Mkf', {annotation});
 </script>
 </html>
