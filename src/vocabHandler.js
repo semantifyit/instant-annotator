@@ -9,7 +9,7 @@ function getVocabURLForDS(ds) {
         vocabs = JSON.parse(JSON.stringify(ds["@graph"][0]["ds:usedVocabularies"]));
     }
     if (ds && ds["@graph"][0] && ds["@graph"][0]["schema:schemaVersion"]) {
-        vocabs.push("https://raw.githubusercontent.com/schemaorg/schemaorg/master/data/releases/" + getSDOVersion(ds["@graph"][0]["schema:schemaVersion"]) + "/all-layers.jsonld");
+        vocabs.push("https://raw.githubusercontent.com/schemaorg/schemaorg/main/data/releases/" + getSDOVersion(ds["@graph"][0]["schema:schemaVersion"]) + "/all-layers.jsonld");
     }
     return vocabs;
 }
