@@ -18,7 +18,7 @@
     "eslint": "^5.16.0",
     "eslint-plugin-import": "^2.18.0",
     "terser-webpack-plugin": "^2.2.2",
-    "webpack": "^4.41.2",
+    "webpack": "^4.44.1",
     "webpack-cli": "^3.3.10",
     "webpack-dev-server": "^3.11.0"
   },
@@ -27,7 +27,7 @@
     "eonasdan-bootstrap-datetimepicker": "^4.17.47",
     "jquery": "^3.5.1",
     "moment": "^2.24.0",
-    "schema-org-adapter": "^1.2.0",
+    "schema-org-adapter": "^3.0.2",
     "snackbarjs": "^1.1.0"
   }
 }

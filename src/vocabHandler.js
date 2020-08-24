@@ -3,15 +3,22 @@ import { memoizeCb } from "./util";
 
 // vvv from semantify-core/public/domainspecifications/assets/vocabularyHandler.js
 
-function getVocabURLForDS(ds) {
+function getVocabURLForDS(ds, cb) {
     let vocabs = [];
     if (ds && ds["@graph"][0] && Array.isArray(ds["@graph"][0]["ds:usedVocabularies"])) {
         vocabs = JSON.parse(JSON.stringify(ds["@graph"][0]["ds:usedVocabularies"]));
     }
     if (ds && ds["@graph"][0] && ds["@graph"][0]["schema:schemaVersion"]) {
-        vocabs.push("https://raw.githubusercontent.com/schemaorg/schemaorg/main/data/releases/" + getSDOVersion(ds["@graph"][0]["schema:schemaVersion"]) + "/all-layers.jsonld");
+        getSchemaSdoHandlerMem((sdoAdapter) => {
+            sdoAdapter.constructSDOVocabularyURL(getSDOVersion(ds["@graph"][0]["schema:schemaVersion"]))
+                .then((vocab) => {
+                    vocabs.push(vocab);
+                    cb(vocabs);
+                })
+        })
+    } else {
+        cb(vocabs)
     }
-    return vocabs;
 }
 
 //helper function to retrieve the SDO version used in a DS
@@ -31,17 +38,20 @@ const getSdoHandlerSingle = (vocabs, cb) => {
 const getSdoHandlerMem = memoizeCb(getSdoHandlerSingle);
 
 const getSdoHandler = (ds, cb) => {
-    const vocabs = getVocabURLForDS(ds);
-    getSdoHandlerMem(vocabs, cb);
+    getVocabURLForDS(ds, (vocabs) => {
+        getSdoHandlerMem(vocabs, cb);
+    });
 };
 
 const getSchemaSdoHandler = (cb) => {
     const sdoAdapter = new SdoAdapter();
-    sdoAdapter.constructSDOVocabularyURL('latest', 'all-layers')
+    sdoAdapter.constructSDOVocabularyURL('latest')
         .then((sdoUrl) =>
             sdoAdapter.addVocabularies([sdoUrl])
         ).then(() => cb(sdoAdapter))
 };
+
+const getSchemaSdoHandlerMem = memoizeCb(getSchemaSdoHandler);
 
 const getEnumMembers = (sdoAdapter, enumId) => {
     try {

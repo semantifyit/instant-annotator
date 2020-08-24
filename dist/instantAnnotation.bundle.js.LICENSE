@@ -75,12 +75,10 @@
  */
 
 /**
- * Removes the @preserve keywords as the last step of the compaction
- * algorithm when it is running on framed output.
+ * Removes the @preserve keywords from expanded result of framing.
  *
- * @param ctx the active context used to compact the input.
- * @param input the framed, compacted output.
- * @param options the compaction options used.
+ * @param input the framed, framed output.
+ * @param options the framing options used.
  *
  * @return the resulting output.
  */
