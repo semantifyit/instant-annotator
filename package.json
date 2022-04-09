@@ -26,7 +26,7 @@
     "bootstrap": "^3.4.1",
     "eonasdan-bootstrap-datetimepicker": "^4.17.47",
     "jquery": "^3.5.1",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "schema-org-adapter": "^3.0.2",
     "snackbarjs": "^1.1.0"
   }
